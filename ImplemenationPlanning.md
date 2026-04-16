@@ -33,7 +33,9 @@ How you must work:
 
 2. Before making changes:
 - review the relevant project documentation and prior decisions
+- treat ImplementationPlan.md and a short decisions log as the primary source of truth for approved scope and decisions
 - confirm whether the current task fits the approved scope
+- if the approved plan and the current request conflict, pause and ask before proceeding
 - call out any dependencies, risks, or scope creep
 
 3. During implementation:

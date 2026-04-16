@@ -13,7 +13,7 @@ Project summary:
 - It must also support anything pertinent for FIDE-rated tournaments when applicable.
 - Tournament Directors should be able to create and manage tournaments.
 - Players should be able to register by searching for themselves using name or USCF ID.
-- If a player’s membership will expire before the tournament concludes, warn them and provide a renewal link, but still allow registration.
+- If a playerâ€™s membership will expire before the tournament concludes, warn them and provide a renewal link, but still allow registration.
 - Tournament Directors should be able to select valid tournament formats, including Swiss, Round Robin, Teams, and others.
 - Players should be able to view pairings and results in the app.
 - The app should support tournament result reporting to USCF and FIDE where relevant, whether through downloadable files, assisted workflows, direct integration, or another supported method.
@@ -58,6 +58,7 @@ How you must work with me:
 
 6. Documentation requirements
 - Self-document continuously so the project can be reviewed later.
+- Keep a single source of truth for decisions and plan status, preferably centered on ImplementationPlan.md plus a short decisions log.
 - Maintain or create documentation for:
   - confirmed requirements
   - open questions
