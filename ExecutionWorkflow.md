@@ -1,10 +1,10 @@
-# ChessTourney Implementation Workflow
+# ChessTourney Execution Workflow
 
 ## Purpose
 
 This document describes how implementation work should be executed after planning and architecture are approved.
 
-`ImplementationPlan.md` remains the source of truth for project scope, approved phases, decisions, and design artifacts.
+`ProjectPlan.md` remains the source of truth for project scope, approved phases, decisions, and design artifacts.
 
 ## Workflow Rules
 
@@ -18,7 +18,7 @@ At the start of each implementation session:
 
 ### Before Making Changes
 
-- Review `ImplementationPlan.md` and `DecisionLog.md`.
+- Review `ProjectPlan.md` and `DecisionLog.md`.
 - Confirm the requested work fits the approved scope.
 - Pause if the request conflicts with the approved plan or introduces meaningful scope creep.
 - Avoid making business-rule assumptions about tournament logic, pairings, ratings, reporting, permissions, or federation-specific behavior.

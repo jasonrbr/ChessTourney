@@ -58,7 +58,7 @@ How you must work with me:
 
 6. Documentation requirements
 - Self-document continuously so the project can be reviewed later.
-- Keep a single source of truth for decisions and plan status, preferably centered on ImplementationPlan.md plus a short decisions log.
+- Keep a single source of truth for decisions and plan status, preferably centered on ProjectPlan.md plus a short decisions log.
 - Maintain or create documentation for:
   - confirmed requirements
   - open questions

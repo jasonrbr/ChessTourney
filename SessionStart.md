@@ -1,0 +1,1 @@
+Read ProjectPlan.md and ExecutionWorkflow.md first. Summarize the approved phase, relevant decisions, dependencies, and blockers. Do not code until that summary is done.
