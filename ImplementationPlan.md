@@ -2,7 +2,7 @@
 
 ## Status
 
-- Phase: Discovery in progress
+- Phase: Discovery complete; planning and architecture next
 - Coding status: Not started
 - Last updated: 2026-04-16
 
@@ -66,9 +66,10 @@ The product is intended to support multiple organizations/clubs from the start, 
 
 ### Team Event Model
 
-- Teams in MVP are captain-created.
+- Teams in MVP are captain-created from already-registered players.
+- Added players must explicitly accept team membership before the roster is final.
+- Players should be notified when added to a team and must be able to leave the team.
 - A player may belong to only one team per event.
-- Team membership workflow details are still being refined.
 
 ### Registration
 
@@ -80,6 +81,8 @@ The product is intended to support multiple organizations/clubs from the start, 
 - Registration constraints should be managed by the app, including section eligibility and similar tournament rules.
 - TD/Staff can register walk-ins directly.
 - Players should be able to cancel their own registrations.
+- MVP registration statuses are registered, cancelled, checked_in, and withdrawn.
+- Payment state should be modeled separately from registration state.
 - Check-in is optional per event.
 - Check-in in MVP is staff-managed only.
 
@@ -141,30 +144,91 @@ The product is intended to support multiple organizations/clubs from the start, 
 ### Notifications
 
 - Email notifications should be opt-in.
+- Passwordless authentication and passkeys are deferred to a post-MVP enhancement.
 
-## Open Questions
+## External Verification Summary
 
-### Team Workflow
+### Verified From Official Sources
 
-- Should adding a player to a team require explicit acceptance, or is notification plus the ability to leave the team sufficient?
-- Should captains add only already-registered players, or should some invite-first flow also exist in MVP?
+- US Chess rated events must be submitted through an active affiliate, and the submitting TD must be authorized by that affiliate.
+- US Chess rating reports are submitted through MUIR and can be handled via required upload files or manual entry workflows.
+- US Chess monthly supplement ratings are the official rating basis unless an event explicitly adopts a different policy.
+- FIDE rating regulations require the Chief Arbiter to provide a TRF file to the federation Rating Officer, who is then responsible for uploading it to the FIDE Rating Server.
 
-### Registration Status Model
+### Not Verified / Must Not Be Assumed
 
-- Final MVP registration statuses are not yet settled.
-- Waitlist support is currently considered out of scope, but status naming still needs confirmation.
-- Payment/refund state modeling still needs to be clarified against registration state modeling.
+- No official public US Chess API documentation was found for member lookup, membership expiration verification, live rating access, or report submission.
+- No public third-party FIDE API path was found for direct tournament submission beyond federation/rating-officer workflows.
+- Direct machine-to-machine integrations for US Chess or FIDE should not be assumed until official documentation or direct confirmation is obtained.
 
-### Security And Auth Roadmap
+### MVP Integration Stance
 
-- Whether passwordless authentication should be added after MVP remains open.
-- Whether MFA should be TOTP-only, email-based, or include passkeys/WebAuthn is not yet decided.
+- US Chess support should be designed as assisted/manual-first with strong export capability.
+- FIDE support should be designed as TRF/export-first with federation/rating-officer workflow awareness.
+- External integrations should sit behind adapter/service boundaries so future official APIs can be added without major architectural changes.
 
-### Integrations And External Verification
+### Sources
 
-- Direct USCF integration capabilities need verification before implementation.
-- Direct FIDE integration capabilities and federation-specific submission workflows need verification before implementation.
-- Whether official USCF data access is available for automated player lookup, membership verification, live data refresh, and reporting submission needs verification before implementation.
+- US Chess Tournament Director and Affiliate FAQ: https://new.uschess.org/tournament-director-and-affiliate-frequently-asked-questions
+- US Chess official ratings guidance: https://new.uschess.org/news/just-rules-official-ratings
+- US Chess member information/search page: https://new.uschess.org/information-new-members
+- US Chess MUIR announcement/reporting context: https://new.uschess.org/news/introducing-muir-member-uploads-information-and-reporting
+- FIDE Rating Regulations: https://handbook.fide.com/chapter/B022024
+- FIDE Rating Server: https://frs.fide.com/
+
+## Next Phase: Planning And Architecture
+
+The next phase should begin now that discovery is complete. No application code should be written until planning and architecture artifacts are reviewed and approved.
+
+### Planning Goals
+
+- Convert confirmed discovery outcomes into a phased implementation strategy.
+- Separate MVP commitments from post-MVP enhancements.
+- Identify dependencies, risks, and sequencing constraints before coding.
+- Review architecture and workflow artifacts before implementation begins.
+
+### Planning Deliverables
+
+- MVP phase breakdown with milestones
+- Deliverables, dependencies, and risks per phase
+- Explicit MVP vs post-MVP scope table
+- Open issues and decision checkpoints
+- Recommended implementation sequence in small reviewable increments
+
+### Architecture And Design Artifacts
+
+The following artifacts should be produced before implementation starts:
+
+- System context diagram
+- High-level application architecture diagram
+- Core domain model / entity relationship diagram
+- Role and permission model
+- Key workflow diagrams for:
+  - Tournament creation and publishing
+  - Player registration
+  - Staff check-in
+  - Pairing generation, review, posting, and result entry
+  - Team creation and acceptance
+  - Reporting/export/submission
+- Integration boundary diagram covering:
+  - USCF
+  - FIDE
+  - Payment processor
+  - Email/notification provider
+  - Authentication/MFA services
+- Initial wireframes or low-fidelity UI flows for:
+  - Public tournament discovery and registration
+  - TD tournament setup
+  - Section configuration and eligibility rules
+  - Pairings/results management
+  - Staff desk workflows
+
+### Proposed Planning Sequence
+
+1. Draft the architecture/design artifacts listed above.
+2. Review the architecture and planning deliverables together.
+3. Finalize phased implementation milestones.
+4. Begin implementation only after explicit approval.
 
 ## Recommendations Recorded During Discovery
 
@@ -173,14 +237,18 @@ The product is intended to support multiple organizations/clubs from the start, 
 - Use hosted payment checkout rather than collecting raw card details directly.
 - Keep player accounts optional in MVP.
 - Prefer simple, standard acceleration options over highly custom pairing control in MVP.
+- Use email/password plus TOTP MFA with recovery codes for organization-side users in MVP.
 
 ## Proposed Documentation Structure
 
-- ImplementationPlan.md: source of truth for current scope, plan, and open questions
-- DecisionLog.md: concise chronological record of confirmed decisions and rationale
+- `ImplementationPlan.md`: source of truth for current scope, planning state, and open questions
+- `DecisionLog.md`: concise chronological record of confirmed decisions and rationale
+- `ImplementationWorkflow.md`: execution rules for implementation sessions after planning approval
+- Architecture/design artifacts: to be added during the next phase before implementation begins
 
 ## Planning Notes
 
-- Discovery is still active.
+- Discovery is complete.
 - Planning phases, milestones, dependencies, risks, and sequencing have not yet been finalized.
-- No coding should begin until discovery is sufficiently complete and the plan is explicitly reviewed and approved.
+- No coding should begin until the planning/architecture phase is reviewed and approved.
+

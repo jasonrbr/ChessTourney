@@ -16,6 +16,7 @@
 - Initial roles are Org admin, Chief TD, and Staff.
 - Permissions should follow least-privilege principles and remain extensible.
 - MFA is required for all organization-side users in MVP.
+- MVP MFA uses email/password plus TOTP, with recovery codes.
 - Players may register without creating an account.
 - Optional player accounts exist for tournament history and autofill.
 - Swiss, Round Robin, and Team events are required in MVP.
@@ -27,7 +28,9 @@
 - Changes affecting eligibility after registration should be flagged for TD review.
 - Unrated-player eligibility is configurable by the TD.
 - Accelerated pairings are required using a small set of standard methods.
-- Teams are captain-created.
+- Teams are captain-created from already-registered players.
+- Team membership requires explicit player acceptance.
+- Players should be notified when added to a team and be able to leave the team.
 - A player may belong to only one team per event.
 - Rated-event registration requires a valid USCF ID.
 - The app does not create USCF IDs.
@@ -35,6 +38,8 @@
 - Registration constraints should be enforced by the app.
 - Walk-in registration by TD/Staff is allowed.
 - Players may cancel their own registrations.
+- MVP registration statuses are registered, cancelled, checked_in, and withdrawn.
+- Payment state is tracked separately from registration state.
 - Check-in is optional and staff-managed only.
 - Pairings are system-generated.
 - Only the Chief TD may edit pairings.
@@ -61,10 +66,10 @@
 - TD notes should be supported but optional.
 - Accessibility is first-class and MVP should target WCAG 2.1 AA.
 - Email notifications are opt-in.
+- Passwordless authentication and passkeys are deferred to a post-MVP enhancement.
+- Architecture diagrams and related design artifacts are required before implementation begins.
+- Discovery verification completed using official US Chess and FIDE sources; direct public APIs for submission and member data remain unverified and must not be assumed.
 
 ### Still Open
 
-- Final team membership confirmation workflow
-- Final registration status model
-- Passwordless/passkey roadmap
-- USCF/FIDE integration and data-access verification
+- No open discovery questions currently recorded.
