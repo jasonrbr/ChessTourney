@@ -1,0 +1,71 @@
+flowchart TB
+    subgraph clients[Clients]
+        public_ui[Public Web]
+        org_ui[Organization and Staff Web]
+    end
+
+    subgraph app[ChessTourney Application]
+        subgraph core[Core Product Areas]
+            discovery[Public Discovery and Detail]
+            registration[Registration and Intake]
+            tournament[Tournament Configuration]
+            operations[Event Operations]
+            reporting[Reporting and Exports]
+            org_admin[Organization Administration]
+        end
+
+        subgraph cross[Cross-Cutting Services]
+            identity[Identity and Access]
+            payments[Payments]
+            notifications[Notifications]
+            audit[Audit and Compliance]
+            policies[Authorization Policy Layer]
+        end
+
+        subgraph integrations[Integration Adapters]
+            uscf_adapter[USCF Adapter Boundary]
+            fide_adapter[FIDE Export Boundary]
+            payment_adapter[Payment Provider Adapter]
+            email_adapter[Email Provider Adapter]
+        end
+    end
+
+    public_ui --> discovery
+    public_ui --> registration
+    public_ui --> reporting
+
+    org_ui --> org_admin
+    org_ui --> tournament
+    org_ui --> registration
+    org_ui --> operations
+    org_ui --> reporting
+
+    discovery --> identity
+    registration --> identity
+    org_admin --> identity
+
+    org_admin --> policies
+    tournament --> policies
+    registration --> policies
+    operations --> policies
+    reporting --> policies
+
+    registration --> payments
+    registration --> notifications
+    registration --> audit
+    tournament --> audit
+    operations --> audit
+    reporting --> audit
+    org_admin --> audit
+
+    payments --> payment_adapter
+    notifications --> email_adapter
+    reporting --> uscf_adapter
+    reporting --> fide_adapter
+
+    classDef ui fill:#eef4ff,stroke:#5871a8,color:#1f2b45;
+    classDef area fill:#edf7f3,stroke:#4f7b6f,color:#173028;
+    classDef service fill:#fff5e8,stroke:#9c7644,color:#38260d;
+    class public_ui,org_ui ui;
+    class discovery,registration,tournament,operations,reporting,org_admin area;
+    class identity,payments,notifications,audit,policies,uscf_adapter,fide_adapter,payment_adapter,email_adapter service;

@@ -1,0 +1,42 @@
+flowchart LR
+    public[Public Users and Players]
+    staff[Organization Admins, Chief TDs, Staff]
+
+    subgraph app[ChessTourney]
+        public_surface[Public Experience]
+        admin_surface[Organization Administration]
+        setup_surface[Tournament Setup and Configuration]
+        ops_surface[Registration and Event Operations]
+        reporting_surface[Reporting and Export Support]
+    end
+
+    uscf[US Chess / USCF]
+    fide[FIDE / Federation Rating Workflow]
+    payments[Payment Processor]
+    email[Email / Notification Provider]
+    auth[Authentication and MFA Support]
+
+    public --> public_surface
+    public --> ops_surface
+    public --> reporting_surface
+
+    staff --> admin_surface
+    staff --> setup_surface
+    staff --> ops_surface
+    staff --> reporting_surface
+
+    public_surface --> setup_surface
+    setup_surface --> ops_surface
+    ops_surface --> reporting_surface
+
+    admin_surface --> auth
+    ops_surface --> payments
+    reporting_surface --> uscf
+    reporting_surface --> fide
+    ops_surface --> email
+    admin_surface --> email
+
+    classDef external fill:#f8f1e7,stroke:#8b6f47,color:#2f2418;
+    classDef internal fill:#e9f2f0,stroke:#3f6a63,color:#12221f;
+    class public_surface,admin_surface,setup_surface,ops_surface,reporting_surface internal;
+    class uscf,fide,payments,email,auth external;

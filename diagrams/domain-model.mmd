@@ -1,0 +1,66 @@
+classDiagram
+    class User
+    class Organization
+    class OrganizationMembership
+    class RolePermissionPolicy
+    class Affiliate
+    class Tournament
+    class Section
+    class PlayerProfile
+    class Registration
+    class PaymentRecord
+    class CheckInRecord
+    class Team
+    class TeamMembership
+    class Round
+    class Pairing
+    class Result
+    class AvailabilityAction
+    class ExtraRatedGame
+    class AuditEvent
+    class NotificationRecord
+    class ReportingPackage
+
+    User "1" --> "0..*" OrganizationMembership : has
+    Organization "1" --> "0..*" OrganizationMembership : contains
+    OrganizationMembership --> RolePermissionPolicy : uses
+
+    Organization "1" --> "0..*" Affiliate : manages
+    Organization "1" --> "0..*" Tournament : owns
+    Tournament --> "0..1" Affiliate : uses
+    Tournament "1" --> "1..*" Section : contains
+    Tournament "1" --> "0..*" ExtraRatedGame : records
+    Tournament "1" --> "0..*" ReportingPackage : prepares
+    Tournament "1" --> "0..*" AuditEvent : emits
+
+    PlayerProfile --> "0..1" User : may link to
+    PlayerProfile "1" --> "0..*" Registration : participates through
+
+    Section "1" --> "0..*" Registration : receives
+    Section "1" --> "0..*" Round : runs
+    Section "1" --> "0..*" Team : may contain
+
+    Registration --> Tournament : belongs to
+    Registration --> Section : placed in
+    Registration "1" --> "0..*" PaymentRecord : has
+    Registration "1" --> "0..1" CheckInRecord : may have
+    Registration "1" --> "0..*" AvailabilityAction : affected by
+
+    Team "1" --> "0..*" TeamMembership : has
+    TeamMembership --> Registration : roster slot
+
+    Round "1" --> "0..*" Pairing : groups
+    Pairing --> "0..1" Result : yields
+
+    NotificationRecord --> User : may target
+    NotificationRecord --> PlayerProfile : may target
+    NotificationRecord --> Registration : may target
+    NotificationRecord --> TeamMembership : may target
+
+    AuditEvent --> Organization : scoped to
+    AuditEvent --> Tournament : may reference
+    ReportingPackage --> Tournament : belongs to
+
+    note for Registration "Registration state is separate from payment state"
+    note for Tournament "Lifecycle state is separate from visibility state"
+    note for Pairing "Generated state is separate from posted/public state"

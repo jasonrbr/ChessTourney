@@ -1,0 +1,51 @@
+flowchart TB
+    public[Public User]
+    player[Player]
+    org_admin[Org Admin]
+    chief_td[Chief TD]
+    staff[Staff]
+
+    subgraph permission_domains[Permission Domains]
+        org_perms[Organization Admin\nmanage profile\nmanage affiliates\nmanage members\nassign roles\nview audit]
+        tournament_perms[Tournament Configuration\ncreate and edit tournaments\nconfigure sections and eligibility\nmanage visibility\npublish]
+        reg_perms[Registration and Intake\nwalk-ins\ncancel any\nview private details\noverride eligibility]
+        ops_perms[Event Operations\ncheck-in\ngenerate pairings\npost pairings\nenter results\nmanage byes and withdrawals\nprint pairings]
+        elevated_ops[Elevated Operations\nedit pairings\ncorrect results]
+        reporting_perms[Reporting\nview readiness\ngenerate exports\nmanage submission]
+    end
+
+    public -->|browse public data| public_view[Public pages]
+    player -->|register or cancel own entry| player_self[Own registration and team actions]
+
+    org_admin --> org_perms
+    org_admin --> tournament_perms
+    org_admin --> reporting_readiness[Reporting readiness]
+
+    chief_td --> tournament_perms
+    chief_td --> reg_perms
+    chief_td --> ops_perms
+    chief_td --> elevated_ops
+    chief_td --> reporting_perms
+
+    staff --> limited_reg[Registration and Intake\nwalk-ins\ncancel any\nview private details]
+    staff --> ops_perms
+    staff --> limited_reporting[Reporting readiness only]
+
+    mfa[MFA Required For All Organization-Side Roles]
+    audit[Audit Required For Sensitive Actions]
+
+    mfa --> org_admin
+    mfa --> chief_td
+    mfa --> staff
+
+    audit --> org_perms
+    audit --> tournament_perms
+    audit --> elevated_ops
+    audit --> reporting_perms
+
+    classDef actor fill:#eef4ff,stroke:#5e76a8,color:#1c2842;
+    classDef perms fill:#eef8ef,stroke:#5d8864,color:#19311e;
+    classDef control fill:#fff3e6,stroke:#a87745,color:#3a230f;
+    class public,player,org_admin,chief_td,staff actor;
+    class org_perms,tournament_perms,reg_perms,ops_perms,elevated_ops,reporting_perms,public_view,player_self,limited_reg,limited_reporting perms;
+    class mfa,audit control;
