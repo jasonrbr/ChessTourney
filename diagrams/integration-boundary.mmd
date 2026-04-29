@@ -1,0 +1,61 @@
+flowchart LR
+    subgraph app[ChessTourney Internal Application]
+        public[Public and Player Flows]
+        admin[Organization and Tournament Workflows]
+        authz[Identity and Access]
+        registration[Registration and Intake]
+        operations[Event Operations]
+        reporting[Reporting and Exports]
+        payments[Payment State]
+        notifications[Notification Service]
+
+        public --> registration
+        admin --> authz
+        admin --> registration
+        admin --> operations
+        admin --> reporting
+        registration --> payments
+        registration --> notifications
+        operations --> reporting
+        reporting --> notifications
+    end
+
+    subgraph adapters[Adapter / Boundary Layer]
+        uscf_adapter[USCF Adapter Boundary\nlookup/reporting assumptions isolated]
+        fide_adapter[FIDE Adapter Boundary\nTRF/export-first support]
+        payment_adapter[Payment Processor Adapter\nhosted checkout and reconciliation]
+        email_adapter[Email/Notification Adapter\nopt-in delivery]
+    end
+
+    uscf[US Chess / USCF]
+    fide[FIDE / Federation Rating Officer Flow]
+    processor[Payment Processor]
+    email[Email Provider]
+
+    reporting --> uscf_adapter
+    reporting --> fide_adapter
+    payments --> payment_adapter
+    notifications --> email_adapter
+
+    uscf_adapter --> uscf
+    fide_adapter --> fide
+    payment_adapter --> processor
+    email_adapter --> email
+
+    note1[No direct public API assumptions\nfor USCF submission or member data]
+    note2[FIDE support is export/manual-first\nnot direct self-service submission]
+    note3[Core app depends on internal interfaces\nnot vendor-specific request formats]
+
+    uscf -.-> note1
+    fide -.-> note2
+    adapters -.-> note3
+
+    classDef internal fill:#eef4ff,stroke:#5e76a8,color:#1c2842;
+    classDef boundary fill:#eef8ef,stroke:#5d8864,color:#19311e;
+    classDef external fill:#fff3e6,stroke:#a87745,color:#3a230f;
+    classDef note fill:#fff8d9,stroke:#b59b2a,color:#4a3c00;
+
+    class public,admin,authz,registration,operations,reporting,payments,notifications internal;
+    class uscf_adapter,fide_adapter,payment_adapter,email_adapter boundary;
+    class uscf,fide,processor,email external;
+    class note1,note2,note3 note;

@@ -1,0 +1,75 @@
+flowchart TD
+    start([Player opens tournament registration])
+    visibility{Tournament and section visible?}
+    choose[Choose section]
+    lookup[Lookup player by name or USCF ID]
+    rated{Rated event?}
+    uscf_valid{Valid USCF ID confirmed?}
+    block_rated[[Block registration\nExplain rated-event requirement]]
+    membership_warn{Membership expires before event end?}
+    show_warning[Show warning and renewal link\nDo not block registration]
+    eligibility{Section eligible\nusing official posted USCF rating?}
+    override_path{Chief TD override later?}
+    block_eligibility[[Block self-service registration\nExplain why section does not qualify]]
+    payment_choice{Online payment or pay onsite selected?}
+    hosted_checkout[Hosted payment flow]
+    online_success{Online payment completed?}
+    retry_or_onsite{Retry later or switch to pay onsite?}
+    create_registration[Create registration record]
+    payment_record[Create payment record\nseparate from registration state]
+    status_registered[Set registration state to registered]
+    review_flag{Eligibility changed after registration?}
+    flag_review[Flag for TD review]
+    confirmation[Show confirmation]
+    later_return[Player may return later to pay online]
+    end_state([Registration complete])
+
+    start --> visibility
+    visibility -->|No| block_visibility[[Registration unavailable]]
+    visibility -->|Yes| choose
+    choose --> lookup
+    lookup --> rated
+
+    rated -->|Yes| uscf_valid
+    rated -->|No| membership_warn
+
+    uscf_valid -->|No| block_rated
+    uscf_valid -->|Yes| membership_warn
+
+    membership_warn -->|Yes| show_warning
+    membership_warn -->|No| eligibility
+    show_warning --> eligibility
+
+    eligibility -->|Yes| payment_choice
+    eligibility -->|No| block_eligibility
+    block_eligibility --> override_path
+    override_path -->|Possible via staff workflow later| end_block([Self-service ends])
+    override_path -->|No override| end_block
+
+    payment_choice -->|Online payment| hosted_checkout
+    payment_choice -->|Pay onsite| create_registration
+
+    hosted_checkout --> online_success
+    online_success -->|Yes| create_registration
+    online_success -->|No| retry_or_onsite
+    retry_or_onsite -->|Retry later| end_pending([Registration not completed yet])
+    retry_or_onsite -->|Switch to pay onsite| create_registration
+
+    create_registration --> payment_record
+    payment_record --> status_registered
+    status_registered --> review_flag
+    review_flag -->|Yes| flag_review
+    review_flag -->|No| confirmation
+    flag_review --> confirmation
+    confirmation --> later_return
+    later_return --> end_state
+
+    classDef step fill:#eef4ff,stroke:#5e76a8,color:#1c2842;
+    classDef decision fill:#eef8ef,stroke:#5d8864,color:#19311e;
+    classDef blocked fill:#fff1f0,stroke:#b85c5c,color:#4a1717;
+    classDef outcome fill:#fff3e6,stroke:#a87745,color:#3a230f;
+
+    class start,choose,lookup,show_warning,hosted_checkout,create_registration,payment_record,status_registered,flag_review,confirmation,later_return step;
+    class visibility,rated,uscf_valid,membership_warn,eligibility,override_path,payment_choice,online_success,retry_or_onsite,review_flag decision;
+    class block_visibility,block_rated,block_eligibility blocked;
+    class end_state,end_pending,end_block outcome;

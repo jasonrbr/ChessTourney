@@ -265,6 +265,35 @@ The following catalog is a planning model for internal permission names and boun
 
 ## Recommended MVP Role Mapping
 
+### MVP Permission Matrix
+
+This matrix is intentionally high-level. It is meant to make review of role boundaries faster before implementation.
+
+| Capability Area | Org Admin | Chief TD | Staff | Player / Public |
+| --- | --- | --- | --- | --- |
+| Manage organization profile, affiliates, members, roles | Yes | No | No | No |
+| View organization audit history | Yes | Limited to workflow audit visibility if later approved | No | No |
+| Create and edit tournaments | Yes | Yes | No by default | No |
+| Configure sections, eligibility, and operational settings | No by default | Yes | No | No |
+| Publish tournaments | Yes | Yes | No | No |
+| Register walk-ins and cancel registrations operationally | No by default | Yes | Yes | No |
+| Override section eligibility | No by default | Yes | No | No |
+| View payment/check-in operational state | Limited as needed for oversight | Yes | Yes | No |
+| Manage check-in | No by default | Yes | Yes | No |
+| Generate pairings | No by default | Yes | Yes | No |
+| Post pairings | No by default | Yes | Yes | No |
+| Edit pairings after generation | No by default | Yes | No | No |
+| Enter initial results | No by default | Yes | Yes | No |
+| Correct results | No by default | Yes | No | No |
+| Manage byes and withdrawals | No by default | Yes | Yes | No |
+| View tie-breaks and print pairings | No by default | Yes | Yes | Public may only view posted results/pairings |
+| Generate reporting exports and manage submission | Limited readiness oversight by default | Yes | No | No |
+
+Review note:
+
+- `org_admin` is intentionally modeled as an administrative role first, not an automatic tournament-operations superuser.
+- Where the matrix says "No by default", a future tournament-assignment or custom-role layer could widen access without changing the core permission model.
+
 ### Org Admin
 
 Recommended permission bundle:
@@ -404,6 +433,16 @@ Examples:
 - operational tournament work must continue even if reporting readiness is incomplete
 - `reporting.manage_submission` should be narrower than everyday operational permissions
 - final submission steps should require a clearly elevated role, recommended `chief_td` and possibly `org_admin`
+
+## Open Authorization Questions
+
+These are planning questions within the authorization design, not unresolved product-scope questions.
+
+- whether `org_admin` should receive a small default operational bundle for MVP convenience or remain admin-only unless separately assigned
+- whether tournament staffing should be represented by a dedicated tournament-assignment entity in MVP or deferred until after the first implementation slice
+- whether audit visibility should be split into organization-administration audit versus tournament-operations audit
+- whether `payment.record_manual_status_note` belongs with everyday staff work or should stay limited to `chief_td`
+- whether section- or round-scoped permission narrowing is needed in MVP, or whether organization scope plus tournament ownership is sufficient initially
 
 ## MFA And Session Requirements
 

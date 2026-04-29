@@ -1,0 +1,87 @@
+flowchart TD
+    start([Staff or Chief TD enters event operations])
+    auth{MFA-satisfied org session?}
+    access{Has operations permission in owning organization?}
+    round_ready{Round ready to pair?}
+    generate_perm{Has pairing.generate?}
+    generate[Generate pairings]
+    review[Review generated pairings]
+    change_needed{Changes needed before posting?}
+    edit_perm{Has pairing.edit?}
+    chief_edit[Chief TD edits pairings]
+    post_perm{Has pairing.post?}
+    post[Post pairings publicly]
+    visible[Players can view posted pairings]
+    result_perm{Has result.enter?}
+    enter_results[Enter results]
+    correction_needed{Correction needed after entry?}
+    correct_perm{Has result.correct?}
+    correct_result[Correct result and preserve audit history]
+    bye_withdrawal{Bye or withdrawal update needed?}
+    availability_perm{Has availability.manage?}
+    record_change[Record bye or withdrawal action]
+    regen_needed{Pairings already generated for affected round?}
+    regenerate[Regenerate pairings]
+    print_perm{Has print_pairings?}
+    print_sheet[Print pairing sheets]
+    end_ops([Operations state updated])
+    no_access[[Access denied]]
+    wait_state([Wait for next operational action])
+
+    start --> auth
+    auth -->|No| no_access
+    auth -->|Yes| access
+    access -->|No| no_access
+    access -->|Yes| round_ready
+
+    round_ready -->|Yes| generate_perm
+    round_ready -->|No| bye_withdrawal
+    generate_perm -->|No| no_access
+    generate_perm -->|Yes| generate
+    generate --> review
+
+    review --> change_needed
+    change_needed -->|Yes| edit_perm
+    change_needed -->|No| post_perm
+    edit_perm -->|No| post_perm
+    edit_perm -->|Yes| chief_edit
+    chief_edit --> post_perm
+
+    post_perm -->|No| print_perm
+    post_perm -->|Yes| post
+    post --> visible
+    visible --> print_perm
+
+    print_perm -->|Yes| print_sheet
+    print_perm -->|No| result_perm
+    print_sheet --> result_perm
+
+    result_perm -->|No| bye_withdrawal
+    result_perm -->|Yes| enter_results
+    enter_results --> correction_needed
+    correction_needed -->|Yes| correct_perm
+    correction_needed -->|No| bye_withdrawal
+    correct_perm -->|No| bye_withdrawal
+    correct_perm -->|Yes| correct_result
+    correct_result --> bye_withdrawal
+
+    bye_withdrawal -->|Yes| availability_perm
+    bye_withdrawal -->|No| wait_state
+    availability_perm -->|No| wait_state
+    availability_perm -->|Yes| record_change
+    record_change --> regen_needed
+    regen_needed -->|Yes| regenerate
+    regen_needed -->|No| end_ops
+    regenerate --> review
+
+    wait_state --> end_ops
+
+    classDef step fill:#eef4ff,stroke:#5e76a8,color:#1c2842;
+    classDef decision fill:#eef8ef,stroke:#5d8864,color:#19311e;
+    classDef blocked fill:#fff1f0,stroke:#b85c5c,color:#4a1717;
+    classDef outcome fill:#fff3e6,stroke:#a87745,color:#3a230f;
+
+    class start,generate,review,chief_edit,post,visible,enter_results,correct_result,record_change,regenerate,print_sheet step;
+    class auth,access,round_ready,generate_perm,change_needed,edit_perm,post_perm,result_perm,correction_needed,correct_perm,bye_withdrawal,availability_perm,regen_needed,print_perm decision;
+    class no_access blocked;
+    class end_ops,wait_state outcome;

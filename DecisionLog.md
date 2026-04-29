@@ -1,5 +1,23 @@
 # ChessTourney Decision Log
 
+## 2026-04-29
+
+### Confirmed Decisions
+
+- The recommended implementation baseline is now `SvelteKit` plus TypeScript, `PostgreSQL`, and `Prisma`.
+- The first coding milestone is `Foundation, Organization Access, And Tournament Management Screens`.
+- The first milestone should prioritize tournament-management screens and publication workflows before registration, payments, pairings, or reporting implementation work.
+- `Better Auth` is the recommended starting auth layer for organization-side sign-in/session handling.
+- Full MFA hardening UX may be deferred from the first implementation slice if that helps the project start faster, but the architecture must preserve the MVP MFA requirement for organization-side users.
+- `Stripe` is deferred from the first implementation slice.
+- `Resend` is deferred from the first implementation slice.
+- Payment and notification boundaries should still be preserved so those services can be added later without rewriting core workflow logic.
+- `CheckInRecord` should be modeled as a standalone entity.
+- Pairings should use a lightweight competitor abstraction rather than pointing only to `Registration`.
+- Team events should share the main pairing lifecycle model rather than using a separate pairing table in the MVP.
+- `org_admin` should remain admin-only by default; tournament-operation powers should come from `chief_td` or `staff` assignment.
+- Tournament-specific staffing/assignment records are deferred from the first implementation slice.
+
 ## 2026-04-16
 
 ### Confirmed Decisions

@@ -1,0 +1,61 @@
+flowchart TD
+    start([Chief TD or authorized org-side user opens reporting])
+    auth{MFA-satisfied org session?}
+    readiness_perm{Has reporting.view_readiness?}
+    readiness[Review reporting readiness]
+    validation{Validation passes?}
+    continue_ops[Continue tournament operations\nreporting issues do not block rounds]
+    export_perm{Has reporting.generate_exports?}
+    generate_exports[Generate export artifacts]
+    uscf_path[Prepare USCF reporting package\nmanual-first or assisted flow]
+    fide_path{FIDE-rated too?}
+    generate_trf[Generate FIDE/TRF-related artifact]
+    fix_issues[Resolve validation issues]
+    submission_perm{Has reporting.manage_submission?}
+    final_check{Final submission validation passes?}
+    block_submit[[Block final submission]]
+    submit_ready[Mark package ready for submission]
+    manual_submit[Complete manual or assisted submission outside app where required]
+    audit_log[Audit export and submission actions]
+    no_access[[Access denied]]
+    end_wait([Reporting remains in progress])
+    end_done([Reporting package completed])
+
+    start --> auth
+    auth -->|No| no_access
+    auth -->|Yes| readiness_perm
+    readiness_perm -->|No| no_access
+    readiness_perm -->|Yes| readiness
+    readiness --> validation
+
+    validation -->|No| continue_ops
+    validation -->|Yes| export_perm
+    continue_ops --> fix_issues
+    fix_issues --> readiness
+
+    export_perm -->|No| end_wait
+    export_perm -->|Yes| generate_exports
+    generate_exports --> uscf_path
+    uscf_path --> fide_path
+    fide_path -->|Yes| generate_trf
+    fide_path -->|No| submission_perm
+    generate_trf --> submission_perm
+
+    submission_perm -->|No| end_wait
+    submission_perm -->|Yes| final_check
+    final_check -->|No| block_submit
+    block_submit --> fix_issues
+    final_check -->|Yes| submit_ready
+    submit_ready --> manual_submit
+    manual_submit --> audit_log
+    audit_log --> end_done
+
+    classDef step fill:#eef4ff,stroke:#5e76a8,color:#1c2842;
+    classDef decision fill:#eef8ef,stroke:#5d8864,color:#19311e;
+    classDef blocked fill:#fff1f0,stroke:#b85c5c,color:#4a1717;
+    classDef outcome fill:#fff3e6,stroke:#a87745,color:#3a230f;
+
+    class start,readiness,continue_ops,generate_exports,uscf_path,generate_trf,fix_issues,submit_ready,manual_submit,audit_log step;
+    class auth,readiness_perm,validation,export_perm,fide_path,submission_perm,final_check decision;
+    class no_access,block_submit blocked;
+    class end_wait,end_done outcome;

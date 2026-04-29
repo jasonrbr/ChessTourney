@@ -4,7 +4,7 @@
 
 - Phase: Discovery complete; planning and architecture in progress
 - Coding status: Not started
-- Last updated: 2026-04-16
+- Last updated: 2026-04-29
 
 ## Purpose
 
@@ -29,6 +29,14 @@ The product is intended to support multiple organizations/clubs from the start w
 The project is currently in planning and architecture.
 
 No application code should be written until planning artifacts and architecture/design artifacts are reviewed and approved.
+
+Current planning status:
+
+- core architecture diagrams are drafted
+- role and permission model is drafted
+- core workflow diagrams are drafted for tournament creation, registration, event operations, and reporting
+- implementation baseline and ready-to-code checklist are drafted
+- remaining pre-coding work is now focused on final review, a few narrow architecture decisions, and approval of the first implementation slice
 
 ## Confirmed Requirements
 
@@ -258,6 +266,43 @@ The following artifacts should be produced and reviewed before implementation st
   - FIDE
   - Payment processor
   - Email/notification provider
+
+## Current Planning Artifacts
+
+The following planning artifacts now exist in the repository:
+
+- `ArchitectureOverview.md`
+- `DomainModel.md`
+- `RolePermissionModel.md`
+- `ImplementationPlan.md`
+- `ReadyToCodeChecklist.md`
+- `diagrams/system-context.mmd`
+- `diagrams/application-architecture.mmd`
+- `diagrams/domain-model.mmd`
+- `diagrams/role-permission-map.mmd`
+- `diagrams/tournament-creation-publishing-workflow.mmd`
+- `diagrams/player-registration-workflow.mmd`
+- `diagrams/event-operations-workflow.mmd`
+- `diagrams/reporting-export-submission-workflow.mmd`
+- `diagrams/integration-boundary.mmd`
+
+Artifacts intentionally still conditional on first-slice scope:
+
+- `Staff check-in` workflow if check-in is included in the first implementation slice
+- `Team creation and acceptance` workflow if team events are included in the first implementation slice
+
+## Current Implementation Baseline
+
+The current recommended starting baseline is:
+
+- `SvelteKit` plus TypeScript
+- `PostgreSQL`
+- `Prisma`
+- `Better Auth` for organization-side sign-in/session handling, with MFA hardening available but deferrable from the first slice
+- `Stripe` deferred from milestone one, with payment boundaries preserved in the design
+- `Resend` deferred from milestone one, with notification boundaries preserved in the design
+
+See `ImplementationPlan.md` and `ReadyToCodeChecklist.md` for the current proposed implementation starting point.
   - Authentication/MFA services
 - Initial wireframes or low-fidelity UI flows for:
   - Public tournament discovery and registration

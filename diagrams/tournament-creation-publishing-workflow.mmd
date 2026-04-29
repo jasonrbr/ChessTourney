@@ -1,0 +1,65 @@
+flowchart TD
+    start([Org-side user starts tournament setup])
+    auth{MFA-satisfied org session?}
+    create_perm{Has tournament.create?}
+    draft[Create draft tournament]
+    base_config[Enter core event details\nformat, dates, visibility default, rating context]
+    rated_check{Rated event?}
+    affiliate_check{Exactly one affiliate selected?}
+    block_affiliate[[Block save/publish\nRated events require exactly one affiliate]]
+    configure_sections[Define sections]
+    eligibility_rules[Configure section eligibility\nincluding unrated-player policy]
+    ops_settings[Configure check-in, payment, acceleration,\nand other operational settings]
+    review_ready{Draft internally ready for review?}
+    publish_perm{Has tournament.publish?}
+    validation{Publish validation passes?}
+    publish[Publish tournament]
+    public_visible[Public listing and registration available]
+    save_draft[Keep as draft for later edits]
+    audit_log[Audit publication change]
+    no_access[[Access denied]]
+    fix_issues[Resolve missing or invalid configuration]
+    end_draft([Draft retained])
+    end_published([Tournament published])
+
+    start --> auth
+    auth -->|No| no_access
+    auth -->|Yes| create_perm
+    create_perm -->|No| no_access
+    create_perm -->|Yes| draft
+
+    draft --> base_config
+    base_config --> rated_check
+    rated_check -->|Yes| affiliate_check
+    rated_check -->|No| configure_sections
+    affiliate_check -->|No| block_affiliate
+    affiliate_check -->|Yes| configure_sections
+    block_affiliate --> fix_issues
+    fix_issues --> base_config
+
+    configure_sections --> eligibility_rules
+    eligibility_rules --> ops_settings
+    ops_settings --> review_ready
+
+    review_ready -->|No| save_draft
+    save_draft --> end_draft
+
+    review_ready -->|Yes| publish_perm
+    publish_perm -->|No| save_draft
+    publish_perm -->|Yes| validation
+
+    validation -->|No| fix_issues
+    validation -->|Yes| publish
+    publish --> audit_log
+    audit_log --> public_visible
+    public_visible --> end_published
+
+    classDef step fill:#eef4ff,stroke:#5e76a8,color:#1c2842;
+    classDef decision fill:#eef8ef,stroke:#5d8864,color:#19311e;
+    classDef blocked fill:#fff1f0,stroke:#b85c5c,color:#4a1717;
+    classDef outcome fill:#fff3e6,stroke:#a87745,color:#3a230f;
+
+    class start,draft,base_config,configure_sections,eligibility_rules,ops_settings,publish,audit_log,public_visible,save_draft,fix_issues step;
+    class auth,create_perm,rated_check,affiliate_check,review_ready,publish_perm,validation decision;
+    class no_access,block_affiliate blocked;
+    class end_draft,end_published outcome;

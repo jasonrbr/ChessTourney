@@ -17,6 +17,11 @@ The diagrams are written in Mermaid so they remain:
 - `application-architecture.mmd`
 - `domain-model.mmd`
 - `role-permission-map.mmd`
+- `player-registration-workflow.mmd`
+- `tournament-creation-publishing-workflow.mmd`
+- `event-operations-workflow.mmd`
+- `reporting-export-submission-workflow.mmd`
+- `integration-boundary.mmd`
 
 ## Suggested Board Layout
 
