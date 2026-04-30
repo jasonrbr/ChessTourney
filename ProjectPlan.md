@@ -2,8 +2,8 @@
 
 ## Status
 
-- Phase: Discovery complete; planning and architecture in progress
-- Coding status: Not started
+- Phase: Discovery complete; architecture approved for Milestone 1; implementation started
+- Coding status: Milestone 1 in progress
 - Last updated: 2026-04-29
 
 ## Purpose
@@ -26,17 +26,16 @@ The product is intended to support multiple organizations/clubs from the start w
 
 ## Current Phase
 
-The project is currently in planning and architecture.
+The project has moved from planning-only work into Milestone 1 implementation.
 
-No application code should be written until planning artifacts and architecture/design artifacts are reviewed and approved.
-
-Current planning status:
+Current implementation status:
 
 - core architecture diagrams are drafted
 - role and permission model is drafted
-- core workflow diagrams are drafted for tournament creation, registration, event operations, and reporting
-- implementation baseline and ready-to-code checklist are drafted
-- remaining pre-coding work is now focused on final review, a few narrow architecture decisions, and approval of the first implementation slice
+- implementation baseline and milestone plan are drafted and being used
+- the SvelteKit application baseline has been scaffolded
+- the first organization-side tournament-management screens are in place using mock data
+- Prisma-backed persistence, auth/session wiring, and real organization/tournament models are the next implementation targets
 
 ## Confirmed Requirements
 
@@ -303,6 +302,23 @@ The current recommended starting baseline is:
 - `Resend` deferred from milestone one, with notification boundaries preserved in the design
 
 See `ImplementationPlan.md` and `ReadyToCodeChecklist.md` for the current proposed implementation starting point.
+
+## Current Implementation Progress
+
+Milestone 1 currently includes:
+
+- SvelteKit project scaffold
+- application shell and primary navigation
+- organization-side tournament workspace routes
+- mock tournament list, draft-creation, and detail/edit screens
+
+The next implementation step is to replace the mock tournament data with Prisma-backed models for:
+
+- `Organization`
+- `OrganizationMembership`
+- `Affiliate`
+- `Tournament`
+- `Section`
   - Authentication/MFA services
 - Initial wireframes or low-fidelity UI flows for:
   - Public tournament discovery and registration

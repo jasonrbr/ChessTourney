@@ -17,6 +17,8 @@
 - Team events should share the main pairing lifecycle model rather than using a separate pairing table in the MVP.
 - `org_admin` should remain admin-only by default; tournament-operation powers should come from `chief_td` or `staff` assignment.
 - Tournament-specific staffing/assignment records are deferred from the first implementation slice.
+- Milestone 1 implementation has started with a `SvelteKit` scaffold and first-pass organization-side tournament-management screens.
+- The first implementation pass is using typed mock tournament data to establish route structure and UI flow before Prisma-backed persistence is added.
 
 ## 2026-04-16
 

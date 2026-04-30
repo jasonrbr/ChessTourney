@@ -8,9 +8,9 @@ It is intentionally opinionated. The goal is to reduce ambiguity enough to begin
 
 ## Status
 
-- Proposed implementation baseline
-- Recommended starting point for MVP
-- Intended to be approved or adjusted before coding begins
+- Active implementation baseline for Milestone 1
+- Current starting point for MVP implementation
+- In use for the first coding slice
 
 ## Recommended Stack
 
@@ -293,6 +293,22 @@ Implementation note:
 - an authorized user can manage tournament configuration through working screens rather than seed data only
 - published tournaments appear on the public side
 - draft tournaments and unpublished operational data remain hidden publicly
+
+## Current Progress Note
+
+Implementation has started on this milestone.
+
+Completed in the current codebase:
+
+- SvelteKit scaffold and project tooling baseline
+- top-level application shell
+- organization-side route structure for tournament management
+- first-pass tournament list, create, and detail/edit screens using typed mock data
+
+Next implementation target:
+
+- add Prisma and the initial relational schema
+- replace mock tournament loaders with real persistence
 
 ## Recommended Milestone After That
 

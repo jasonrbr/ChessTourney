@@ -8,9 +8,9 @@ It is intentionally narrow so the team can begin coding soon without pretending 
 
 ## Current Recommendation
 
-Coding can begin once the items in **Must Finish Before Coding** are reviewed and accepted.
+Milestone 1 coding has begun using the baseline in `ImplementationPlan.md`.
 
-Items in **Can Follow Immediately After Coding Starts** are still important, but they should not block the first implementation slice unless that slice directly depends on them.
+Items in **Can Follow Immediately After Coding Starts** remain important, but they should not block the current implementation slice unless that slice directly depends on them.
 
 See `ImplementationPlan.md` for the proposed default stack, recommended answers to the remaining architecture questions, and the suggested first coding milestone.
 
@@ -82,3 +82,8 @@ The planning phase is ready to close when:
 - the implementation stack is chosen
 - the first implementation slice is approved
 - the team agrees that unresolved items are not likely to force an early rewrite
+
+Current note:
+
+- this threshold has been treated as met for Milestone 1
+- remaining items are now implementation follow-ups rather than blockers for the current slice
