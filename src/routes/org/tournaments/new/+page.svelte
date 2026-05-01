@@ -9,10 +9,7 @@
 <section class="page">
 	<header>
 		<h2>Create a draft tournament</h2>
-		<p>
-			This first UI pass is intentionally payment-light. The form focuses on lifecycle, rating
-			context, sections, and publication readiness.
-		</p>
+		<p>Set up tournament details, rating context, sections, and publication readiness.</p>
 	</header>
 
 	<form class="form">
@@ -77,9 +74,6 @@
 
 		<fieldset>
 			<legend>Sections</legend>
-			<p class="hint">
-				Initial examples for this slice. Dynamic section editing will be wired into real data next.
-			</p>
 			<ul class="section-list">
 				{#each sectionExamples as section}
 					<li>{section}</li>
@@ -94,7 +88,7 @@
 				<span>Enable staff-managed check-in</span>
 			</label>
 			<label>
-				<span>Payment mode for this slice</span>
+				<span>Payment mode</span>
 				<select name="paymentMode">
 					<option>Deferred</option>
 					<option>Offline only</option>

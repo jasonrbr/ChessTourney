@@ -63,7 +63,6 @@
 				<li class:good={data.tournament.visibility === 'published'}>
 					Visibility state explicitly chosen
 				</li>
-				<li class="muted">Registration and payments will be wired in a later slice.</li>
 			</ul>
 		</section>
 	</div>
@@ -196,10 +195,6 @@
 
 	.good {
 		color: #27584f;
-	}
-
-	.muted {
-		color: #68797e;
 	}
 
 	@media (min-width: 980px) {

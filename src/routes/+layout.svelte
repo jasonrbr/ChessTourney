@@ -18,7 +18,6 @@
 	<header class="site-header">
 		<a class="brand" href="/">
 			<span>ChessTourney</span>
-			<small>Milestone 1</small>
 		</a>
 
 		<nav aria-label="Primary navigation">
@@ -74,19 +73,13 @@
 	}
 
 	.brand {
-		display: inline-grid;
+		display: inline-flex;
 		text-decoration: none;
 		font-weight: 800;
 	}
 
 	.brand span {
 		font-size: 1.1rem;
-	}
-
-	.brand small {
-		color: #7d4c10;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
 	}
 
 	nav ul {

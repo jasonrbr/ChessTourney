@@ -14,10 +14,7 @@
 		<div>
 			<p class="eyebrow">Organization workspace</p>
 			<h1>Tournament operations</h1>
-			<p>
-				Starting with configuration, sections, visibility, and affiliate-aware publication
-				workflows.
-			</p>
+			<p>Manage tournament configuration, sections, visibility, and publication.</p>
 		</div>
 
 		<nav aria-label="Organization workspace">
