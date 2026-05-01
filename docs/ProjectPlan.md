@@ -4,7 +4,7 @@
 
 - Phase: Discovery complete; architecture approved for Milestone 1; implementation started
 - Coding status: Milestone 1 in progress
-- Last updated: 2026-04-29
+- Last updated: 2026-05-01
 
 ## Purpose
 
@@ -36,6 +36,7 @@ Current implementation status:
 - the SvelteKit application baseline has been scaffolded
 - the first organization-side tournament-management screens are in place using mock data
 - Prisma-backed persistence, auth/session wiring, and real organization/tournament models are the next implementation targets
+- PWA-based offline tournament operations are now an explicit planning constraint for event operations
 
 ## Confirmed Requirements
 
@@ -129,6 +130,16 @@ Current implementation status:
 - Tie-breaks should be visible to TDs in MVP.
 - Public tie-break display is optional and may be deferred if that simplifies MVP.
 
+### Offline Tournament Operations
+
+- The full product does not need to be offline-first in MVP.
+- Registration, payment processing, account management, notifications, federation lookup, and federation submission may require internet access.
+- Day-of-event tournament operations should be designed to continue when connectivity is unavailable after an authorized user prepares the tournament for offline operations.
+- Offline-capable operations should include check-in, pairing generation/viewing, pairing printing, result entry, result correction history, byes, withdrawals, standings/results export, and local backup/export.
+- Offline actions should be captured as auditable local commands that can sync back to the hosted system when connectivity returns.
+- Hosted data remains the source of truth after sync validation.
+- Multi-device offline operation is not assumed for MVP; a single active offline operations device per tournament is an acceptable starting constraint.
+
 ### Visibility
 
 - Tournament visibility is chosen per tournament by the TD.
@@ -221,6 +232,7 @@ Current implementation status:
 - Pairing generation, review, posting, and result entry
 - Byes, withdrawals, and pairing regeneration workflows
 - Printable pairing sheets
+- PWA-based offline operations support for day-of-event workflows
 - Public pairings, results, and rosters
 - TD-visible tie-breaks
 - Extra rated games tracking
@@ -237,6 +249,7 @@ Current implementation status:
 - Advanced or highly custom pairing controls beyond standard acceleration options
 - Public tie-break display if it materially complicates MVP delivery
 - Fully automated federation submission unless official supported APIs are confirmed
+- Multi-device offline conflict resolution beyond a conservative review workflow
 
 ## Planning Goals
 
@@ -273,6 +286,7 @@ The following planning artifacts now exist in the repository:
 - `ArchitectureOverview.md`
 - `DomainModel.md`
 - `RolePermissionModel.md`
+- `OfflineOperationsPlan.md`
 - `ImplementationPlan.md`
 - `ReadyToCodeChecklist.md`
 - `diagrams/system-context.mmd`

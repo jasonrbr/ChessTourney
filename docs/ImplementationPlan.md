@@ -31,11 +31,13 @@ Why:
 - Svelte with SvelteKit
 - TypeScript throughout
 - accessible component patterns from the start
+- PWA-capable application shell for offline event operations
 
 Recommended stance:
 
 - prefer server-rendered pages for public discovery/detail views
 - use client-side interactivity only where it materially improves operational workflows
+- design event-operations screens so they can later read/write from local PWA storage when a tournament has been prepared for offline use
 
 ### Backend
 
@@ -125,6 +127,22 @@ Recommended stance:
 
 - keep export generation inside the reporting module
 - track export metadata in application records even if the file-generation approach stays simple at first
+- make results/standings exports for day-of-event operations capable of being generated from downloaded local tournament data
+
+### Offline Event Operations
+
+- use PWA capabilities for day-of-event offline resilience
+- keep registration, payments, notifications, account management, and federation submission online-first
+- support offline operation only after an authorized user prepares a tournament packet while online
+- store downloaded event-operation data in IndexedDB and app assets through Cache Storage/service worker behavior
+- model offline changes as auditable commands queued for later sync
+
+Recommended stance:
+
+- do not make Milestone 1 fully offline-capable
+- preserve the architecture now by implementing event operations through command handlers and services rather than server-route-only mutations
+- start with a conservative single-active-offline-device assumption for MVP
+- require sync validation and review for risky offline actions such as walk-ins, eligibility overrides, and late section changes
 
 ## Deferral Guidance For External Services
 
@@ -250,6 +268,20 @@ Implementation note:
 
 - authorization services should be written so tournament-specific assignment can be added without changing every call site
 
+### 6. Offline Operations Boundary
+
+Recommendation:
+
+- support offline behavior for tournament operations only, not the entire product
+- registration, payments, notifications, account management, and federation submission remain online-first
+- event-operation commands should be capable of running against hosted persistence now and local PWA storage later
+
+Why:
+
+- over-the-board tournament operations must survive venue connectivity problems
+- registration and payment workflows naturally depend on hosted services
+- keeping the offline boundary narrow makes the MVP achievable without sacrificing day-of-event reliability
+
 ## Recommended First Coding Milestone
 
 ### Milestone Name
@@ -269,6 +301,7 @@ Implementation note:
 - organization-side screens to create, view, and edit tournaments and sections
 - tournament publication flow
 - public tournament discovery list and tournament detail page
+- preserve PWA/offline-readiness boundaries for future event operations
 
 ### Explicitly Deferred From This Milestone
 
@@ -282,6 +315,7 @@ Implementation note:
 - reporting/export generation
 - team creation and acceptance
 - live email/notification delivery
+- offline tournament packet download, local command queue, and sync/review workflows
 
 ### Acceptance Criteria
 
@@ -293,6 +327,7 @@ Implementation note:
 - an authorized user can manage tournament configuration through working screens rather than seed data only
 - published tournaments appear on the public side
 - draft tournaments and unpublished operational data remain hidden publicly
+- tournament-management code does not make event-operation workflows depend on server-route-only mutations
 
 ## Current Progress Note
 
@@ -310,6 +345,10 @@ Next implementation target:
 - add Prisma and the initial relational schema
 - replace mock tournament loaders with real persistence
 
+Offline planning note:
+
+- before implementing check-in, pairings, results, printing, or exports, review `OfflineOperationsPlan.md` and keep those workflows command-oriented so they can run from local PWA data during an internet outage
+
 ## Recommended Milestone After That
 
 - Registration Intake And Payment State
@@ -324,6 +363,22 @@ Scope preview:
 - hosted checkout integration after the base payment-state model is validated
 - registration confirmation and cancellation flows
 
+## Offline-Readiness Milestone
+
+This milestone should happen before or alongside the first event-operations implementation.
+
+Scope preview:
+
+- PWA manifest and service worker baseline
+- installable app shell for organization-side operations
+- offline status indicator
+- local tournament packet storage model in IndexedDB
+- command queue abstraction for event-operation actions
+- local backup/export file shape
+- sync/review design for queued offline commands
+
+This milestone does not need to make registration or payment flows offline-capable.
+
 ## Implementation Structure Recommendation
 
 The first codebase pass should be organized around application areas, not frameworks alone.
@@ -333,6 +388,7 @@ Suggested top-level internal modules:
 - identity-access
 - organizations
 - tournaments
+- offline-operations
 - public-web
 - audit
 - notifications
@@ -347,6 +403,7 @@ This is a logical structure recommendation, not a strict folder prescription.
 - mixing registration state and payment state
 - leaking role-name checks throughout the codebase instead of centralizing permissions
 - treating team events as an afterthought in pairing design
+- implementing pairings/results as server-only mutations that cannot later run from local PWA storage
 - overbuilding background-job infrastructure before the first slice proves the need
 
 ## Decision Summary
@@ -359,6 +416,7 @@ Recommended defaults before coding:
 - Stripe deferred from milestone one, but payment boundaries preserved
 - Resend deferred from milestone one, but notification boundaries preserved
 - no dedicated job runner in milestone one
+- PWA-based offline support is scoped to day-of-event operations
 - standalone `CheckInRecord`
 - shared pairing lifecycle with a lightweight competitor abstraction
 - admin-only default for `org_admin`

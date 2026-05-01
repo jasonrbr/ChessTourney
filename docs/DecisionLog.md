@@ -1,5 +1,25 @@
 # ChessTourney Decision Log
 
+## 2026-05-01
+
+### Confirmed Decisions
+
+- PWA-based offline support is now an explicit requirement for day-of-event tournament operations.
+- The full product does not need to be offline-first in MVP.
+- Public registration, payments, account management, email notifications, federation lookup, and federation submission may require internet access.
+- Offline-capable workflows should focus on check-in, pairings, printing pairings, result entry, result corrections, byes, withdrawals, standings/results exports, and local backup/export.
+- Offline operation should start from an authorized online preparation step that downloads a tournament operations packet.
+- Offline changes should be captured as auditable local commands and synced back to the hosted system for validation and replay.
+- Hosted data remains the source of truth after sync validation.
+- The MVP may assume a conservative single-active-offline-device model unless later changed.
+
+### Still Open
+
+- Whether staff-created walk-ins are allowed while offline or deferred to paper/manual handling.
+- Whether the single-active-offline-device rule is enforced technically in MVP or expressed as a workflow constraint.
+- How stale an offline tournament packet may be before refresh is required or strongly warned.
+- Whether PWA local data encryption is required for MVP or deferred to a later native wrapper/security hardening step.
+
 ## 2026-04-29
 
 ### Confirmed Decisions

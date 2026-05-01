@@ -10,6 +10,7 @@ This repository now contains both the planning artifacts and the first implement
 - Milestone 1 implementation is in progress
 - Current UI work focuses on organization-side tournament management screens
 - Payments, email delivery, registration, and pairing logic are intentionally deferred from the first slice
+- PWA-based offline support is planned for day-of-event tournament operations, not for registration or payments
 
 ## Current Stack
 
@@ -31,6 +32,7 @@ Current implementation goals:
 - establish the SvelteKit application shell
 - build organization-side tournament list/create/detail flows
 - preserve the future boundaries for publication, registration, and payments
+- preserve the future boundary for offline event operations
 - replace mock data with Prisma-backed data in the next implementation step
 
 ## Development
@@ -57,6 +59,7 @@ npm run check
 
 - `docs/ProjectPlan.md`: source of truth for scope, requirements, and phase status
 - `docs/ImplementationPlan.md`: approved implementation baseline and milestone sequencing
+- `docs/OfflineOperationsPlan.md`: PWA/offline boundary for day-of-event tournament operations
 - `docs/ReadyToCodeChecklist.md`: remaining planning closeout items and implementation readiness notes
 - `docs/ExecutionWorkflow.md`: expectations for implementation sessions and documentation updates
 - `docs/SessionStart.md`: session startup context for future planning and implementation work

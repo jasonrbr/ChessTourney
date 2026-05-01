@@ -14,6 +14,8 @@ Items in **Can Follow Immediately After Coding Starts** remain important, but th
 
 See `ImplementationPlan.md` for the proposed default stack, recommended answers to the remaining architecture questions, and the suggested first coding milestone.
 
+Offline tournament operations are now an explicit event-operations requirement. This does not block the current Milestone 1 persistence work, but it should be resolved before implementing check-in, pairings, result entry, printing, or event exports.
+
 ## Must Finish Before Coding
 
 ### 1. Complete The Remaining Critical Workflow Artifacts
@@ -56,6 +58,16 @@ See `ImplementationPlan.md` for the proposed default stack, recommended answers 
 - [x] Define what is explicitly stubbed or deferred
 - [x] Define acceptance criteria for that slice
 
+### 6. Define Offline Event Operations Boundary
+
+- [x] Confirm that registration, payments, account management, notifications, and federation submission may remain online-only in MVP
+- [x] Confirm that day-of-event operations should be PWA-capable during connectivity loss
+- [x] Define the initial offline tournament packet contents
+- [x] Define the local command queue and sync/review stance
+- [ ] Decide whether MVP permits staff-created walk-ins while offline
+- [ ] Decide whether MVP enforces a single active offline operations device per tournament
+- [ ] Decide how stale an offline packet can be before refresh is required or heavily warned
+
 ## Can Follow Immediately After Coding Starts
 
 - deeper audit-event specialization
@@ -63,6 +75,9 @@ See `ImplementationPlan.md` for the proposed default stack, recommended answers 
 - richer reporting automation details beyond export/manual-first support
 - public tie-break presentation refinements
 - post-MVP federation expansion concerns
+- PWA manifest/service worker implementation
+- local IndexedDB schema for offline tournament packets
+- sync/review UX for offline command replay
 
 ## Recommended First Slice
 
@@ -71,6 +86,7 @@ If the team wants the fastest path to useful progress, the recommended first sli
 1. identity and organization membership foundation
 2. tournament creation and publication
 3. registration intake with separate payment state
+4. offline-readiness infrastructure before event operations
 
 This sequence establishes the core tenancy, authorization, and event lifecycle boundaries before the more complex pairing and reporting workflows are built.
 
