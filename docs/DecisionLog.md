@@ -12,6 +12,18 @@
 - Offline changes should be captured as auditable local commands and synced back to the hosted system for validation and replay.
 - Hosted data remains the source of truth after sync validation.
 - The MVP may assume a conservative single-active-offline-device model unless later changed.
+- Prize categories should be configurable per tournament section.
+- Prize awards may be cash, non-cash, or combined cash-plus-non-cash.
+- Prize eligibility should be based on event rating snapshots or explicitly announced rating policy, not changing live ratings after the event.
+- Prize modeling must distinguish closed rating-class prizes from under-rating prizes.
+- Both closed rating bands and overlapping under-threshold prize categories must be supported.
+- Normal prize calculation should follow US Chess defaults for one cash prize per player, tied-prize pooling, and no player choice among eligible cash prizes.
+- Overlapping under-threshold categories use normal cash-prize pooling and one-prize behavior unless configured as special/additive.
+- Non-cash award ties should default to tie-break resolution, with TD-visible tie-break explanations and TD override support.
+- Combined cash-plus-non-cash awards should default to separate cash and non-cash calculation, with a TD-configurable same-recipient variation when announced.
+- Based-on prize funds are in MVP scope.
+- Additive/special prizes should be explicitly configured and publicly described as such.
+- Additive/special prizes may stack with other prize categories.
 
 ### Still Open
 

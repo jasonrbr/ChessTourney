@@ -90,6 +90,23 @@ Current implementation status:
 - Unrated-player section eligibility should be configurable by the TD.
 - Accelerated pairings are required in MVP, using a small set of standard acceleration methods.
 
+### Prize Configuration And Awards
+
+- TDs should be able to configure prize categories per tournament section.
+- Prize categories may include overall/place prizes, rating-class prizes, rating-under prizes, unrated prizes, age/grade/special prizes, and non-cash awards.
+- Prize awards may be cash, non-cash, or combined cash-plus-non-cash.
+- Prize eligibility should use the same rating basis as section eligibility unless the event explicitly announces a different policy.
+- Prize category requirements should support rating ranges, under-rating thresholds, unrated status, section membership, and later age/grade/team constraints.
+- The system should support both closed rating classes, such as `1200-1399`, and under prizes, such as `Under 1500`, because both are common and have different eligibility behavior.
+- Prize calculation should preserve US Chess default behavior for cash prizes: a player does not receive more than one cash prize from the normal prize pool, and overlapping tied prizes are pooled according to eligibility limits.
+- A player may be eligible for multiple overlapping under prizes, but normal prize categories should not stack unless a category is configured as special/additive.
+- Based-on prize funds should be supported in MVP alongside guaranteed/simple prizes.
+- Non-cash prizes should default to tie-break assignment, and the TD should be able to review the tie-break explanation and override the assignment.
+- Combined cash-plus-non-cash prizes should default to separate cash and non-cash calculations unless the TD explicitly configures and announces same-recipient assignment.
+- Special prizes that may be won in addition to normal place/class prizes should be explicitly marked as special/additive in tournament configuration and public prize descriptions.
+- Special/additive prizes may stack with other prize categories.
+- Prize output should be reviewable by the TD before publication or payout.
+
 ### Team Event Model
 
 - Teams in MVP are captain-created from already-registered players.
@@ -189,6 +206,8 @@ Current implementation status:
 - US Chess rated events must be submitted through an active affiliate, and the submitting TD must be authorized by that affiliate.
 - US Chess rating reports are submitted through MUIR and can be handled via required upload files or manual entry workflows.
 - US Chess monthly supplement ratings are the official rating basis unless an event explicitly adopts a different policy.
+- US Chess prize rules distinguish place prizes, class prizes, under prizes, special prizes, tied cash prize pooling, non-cash prize ranking, limited prizes, and based-on prize funds.
+- US Chess rules generally prevent a player from choosing among cash prizes and limit normal prize assignment so the system, not the player, determines the applicable award.
 - FIDE rating regulations require the Chief Arbiter to provide a TRF file to the federation Rating Officer, who is then responsible for uploading it to the FIDE Rating Server.
 
 ### Not Verified / Must Not Be Assumed
@@ -207,6 +226,8 @@ Current implementation status:
 
 - US Chess Tournament Director and Affiliate FAQ: https://new.uschess.org/tournament-director-and-affiliate-frequently-asked-questions
 - US Chess official ratings guidance: https://new.uschess.org/news/just-rules-official-ratings
+- US Chess Official Rules free 2026 chapters and prize-rules context: https://new.uschess.org/news/7th-edition-rule-book-free-chapters-updated-2026
+- US Chess Rule Book PDF, 2026 free chapters: https://new.uschess.org/sites/default/files/media/documents/us-chess-rule-book-online-2026.pdf
 - US Chess member information/search page: https://new.uschess.org/information-new-members
 - US Chess MUIR announcement/reporting context: https://new.uschess.org/news/introducing-muir-member-uploads-information-and-reporting
 - FIDE Rating Regulations: https://handbook.fide.com/chapter/B022024
@@ -235,6 +256,7 @@ Current implementation status:
 - PWA-based offline operations support for day-of-event workflows
 - Public pairings, results, and rosters
 - TD-visible tie-breaks
+- Section-scoped prize category configuration and TD-reviewed prize award calculations
 - Extra rated games tracking
 - Audit trail for sensitive actions and result corrections
 - Export/manual-first reporting support for USCF and FIDE-related outputs

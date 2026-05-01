@@ -129,6 +129,28 @@ Recommended stance:
 - track export metadata in application records even if the file-generation approach stays simple at first
 - make results/standings exports for day-of-event operations capable of being generated from downloaded local tournament data
 
+### Prize Configuration And Award Calculation
+
+- model prize categories per section, not only at tournament level
+- support overall/place prizes, closed rating-class prizes, under-rating prizes, unrated prizes, special/additive prizes, and non-cash awards
+- support cash, non-cash, and combined cash-plus-non-cash award descriptions
+- support both guaranteed/simple and based-on prize funds in MVP
+- store the rating basis used for prize eligibility as a snapshot or explicit event policy
+- distinguish cash prize calculation from non-cash award assignment
+- make calculated prize winners reviewable and overrideable by the TD before publication or payout
+
+Recommended stance:
+
+- implement prize configuration after standings and tie-break data are reliable
+- calculate awards from final standings using US Chess defaults for cash-prize pooling and one-prize-per-player behavior
+- apply normal cash-prize pooling and one-prize behavior to overlapping under categories; stack only special/additive categories
+- support explicit special/additive prize categories only when the TD marks them as such in advance
+- allow special/additive prizes to stack with normal place/class/under prizes
+- use tie-breaks as the default non-cash award resolver, show the TD how the tie-break result was determined, and allow TD override
+- calculate combined cash-plus-non-cash awards separately by default, with a TD-configurable same-recipient variation when announced
+- avoid letting a player choose which prize to accept; the system should calculate the award according to configured ranking and US Chess rules
+- record prize-calculation inputs and TD overrides for auditability
+
 ### Offline Event Operations
 
 - use PWA capabilities for day-of-event offline resilience
@@ -363,6 +385,34 @@ Scope preview:
 - hosted checkout integration after the base payment-state model is validated
 - registration confirmation and cancellation flows
 
+## Prize Configuration Milestone
+
+This milestone should happen after standings and tie-break calculations exist for the relevant tournament format.
+
+Scope preview:
+
+- section-level prize category setup
+- prize category types: place, class/rating range, under rating, unrated, special/additive, and non-cash
+- prize amount/award configuration for cash, non-cash, and combined cash-plus-non-cash awards
+- prize rank/order configuration for non-cash and overlapping eligible awards
+- based-on prize fund configuration and proportional payout calculation
+- cash-prize pooling calculation for tied players with different eligibility
+- tie-break explanation display for non-cash prize assignments
+- prize eligibility preview from current standings
+- final prize calculation with TD review before publish/payout
+- audit trail for TD prize overrides
+
+Initial data-shape recommendation:
+
+- `PrizeCategory` belongs to `Section`
+- `PrizeCategory` stores category type, public label, eligibility criteria, rank/order, cash amount, non-cash award description, based-on settings, and whether it is additive/special
+- `PrizeAward` stores the calculated recipient, amount/award, tied group context, calculation status, and optional TD override note
+- prize eligibility should use event-specific rating snapshots, not live post-event ratings
+
+Prize policy note:
+
+- no open prize-policy questions remain from the initial prize planning pass; future implementation questions should be handled as UI/data-shape details unless they change US Chess default behavior
+
 ## Offline-Readiness Milestone
 
 This milestone should happen before or alongside the first event-operations implementation.
@@ -389,6 +439,7 @@ Suggested top-level internal modules:
 - organizations
 - tournaments
 - offline-operations
+- prizes
 - public-web
 - audit
 - notifications
@@ -404,6 +455,7 @@ This is a logical structure recommendation, not a strict folder prescription.
 - leaking role-name checks throughout the codebase instead of centralizing permissions
 - treating team events as an afterthought in pairing design
 - implementing pairings/results as server-only mutations that cannot later run from local PWA storage
+- calculating prizes before standings, tie-breaks, rating snapshots, and withdrawal/completion rules are stable
 - overbuilding background-job infrastructure before the first slice proves the need
 
 ## Decision Summary
@@ -417,6 +469,7 @@ Recommended defaults before coding:
 - Resend deferred from milestone one, but notification boundaries preserved
 - no dedicated job runner in milestone one
 - PWA-based offline support is scoped to day-of-event operations
+- prize categories are section-scoped and should follow US Chess cash/non-cash prize defaults unless the TD explicitly configures announced variations
 - standalone `CheckInRecord`
 - shared pairing lifecycle with a lightweight competitor abstraction
 - admin-only default for `org_admin`
