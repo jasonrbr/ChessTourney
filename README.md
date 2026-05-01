@@ -18,7 +18,7 @@ This repository now contains both the planning artifacts and the first implement
 - `PostgreSQL` planned
 - `Prisma` planned for data access and migrations
 
-The current implementation baseline is documented in `ImplementationPlan.md`.
+The current implementation baseline is documented in `docs/ImplementationPlan.md`.
 
 ## Milestone 1 Scope
 
@@ -55,8 +55,9 @@ npm run check
 
 ## Repository Guides
 
-- `ProjectPlan.md`: source of truth for scope, requirements, and phase status
-- `ImplementationPlan.md`: approved implementation baseline and milestone sequencing
-- `ReadyToCodeChecklist.md`: remaining planning closeout items and implementation readiness notes
-- `ExecutionWorkflow.md`: expectations for implementation sessions and documentation updates
-- `diagrams/`: Mermaid planning artifacts and workflow diagrams
+- `docs/ProjectPlan.md`: source of truth for scope, requirements, and phase status
+- `docs/ImplementationPlan.md`: approved implementation baseline and milestone sequencing
+- `docs/ReadyToCodeChecklist.md`: remaining planning closeout items and implementation readiness notes
+- `docs/ExecutionWorkflow.md`: expectations for implementation sessions and documentation updates
+- `docs/SessionStart.md`: session startup context for future planning and implementation work
+- `docs/diagrams/`: Mermaid planning artifacts and workflow diagrams

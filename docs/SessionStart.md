@@ -1,12 +1,12 @@
-Read ProjectPlan.md, ExecutionWorkflow.md, ArchitectureOverview.md, and DomainModel.md first.
+Read docs/ProjectPlan.md, docs/ExecutionWorkflow.md, docs/ArchitectureOverview.md, and docs/DomainModel.md first.
 
-If shell, path, or editing behavior seems odd, also read WorkspaceNotes.md before continuing.
+If shell, path, or editing behavior seems odd, also read docs/WorkspaceNotes.md before continuing.
 
 Summarize:
 - the current approved phase
 - the highest-priority confirmed decisions relevant to architecture
 - the main dependencies and blockers before coding
-- the open architecture questions from DomainModel.md
+- the open architecture questions from docs/DomainModel.md
 
 Do not code until that summary is done.
 
