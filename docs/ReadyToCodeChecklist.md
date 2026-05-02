@@ -14,7 +14,7 @@ Items in **Can Follow Immediately After Coding Starts** remain important, but th
 
 See `ImplementationPlan.md` for the proposed default stack, recommended answers to the remaining architecture questions, and the suggested first coding milestone.
 
-Offline tournament operations are now an explicit event-operations requirement. This does not block the current Milestone 1 persistence work, but it should be resolved before implementing check-in, pairings, result entry, printing, or event exports.
+Offline tournament operations are now an explicit event-operations requirement. This does not block the current Milestone 1 persistence work, but it should be resolved before making check-in, pairings, result entry, printing, or event exports offline-capable.
 
 ## Must Finish Before Coding
 
@@ -103,3 +103,4 @@ Current note:
 
 - this threshold has been treated as met for Milestone 1
 - remaining items are now implementation follow-ups rather than blockers for the current slice
+- a Prisma-backed Double Round Swiss test-run slice now exists, but org auth/MFA, payments, exports, printing, reporting, prize calculation, and offline PWA support are still future work

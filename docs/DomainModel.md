@@ -182,7 +182,7 @@ Likely key attributes:
 
 Design note:
 
- is a planning name. Final naming may change to distinguish between canonical player identity, lookup snapshots, and event-specific data.
+`PlayerProfile` is a planning name. Final naming may change to distinguish between canonical player identity, lookup snapshots, and event-specific data.
 
 #### Registration
 
@@ -250,7 +250,7 @@ Likely relationships:
 
 Design note:
 
-This could remain a field on  if the workflow stays simple, but a dedicated record may be cleaner for auditability.
+This could remain a field on `Registration` if the workflow stays simple, but a dedicated record may be cleaner for auditability.
 
 ### Team Events
 
@@ -328,7 +328,9 @@ Likely key attributes:
 - posted state
 - revision metadata
 
-#### Result`r`n`r`nRepresents the scored outcome tied to a pairing.
+#### Result
+
+Represents the scored outcome tied to a pairing.
 
 Key responsibilities:
 
@@ -364,7 +366,7 @@ Likely relationships:
 
 Design note:
 
-This may become separate entities for  and , but keeping it grouped in planning keeps the model flexible.
+This may become separate entities for `ByeRequest` and `WithdrawalAction`, but keeping it grouped in planning keeps the model flexible.
 
 #### ExtraRatedGame
 
@@ -427,16 +429,16 @@ Likely relationships:
 
 At a high level:
 
--  owns 
--  and  connect through 
--  owns 
--  participates through 
--  connects player identity, section placement, payment state, and operational status
--  owns 
--  owns 
--  owns 
--  and  sit alongside registration for team events
-- , , and  attach across the model as cross-cutting support entities
+- `Organization` owns `Tournament`
+- `User` and `Organization` connect through `OrganizationMembership`
+- `Tournament` owns `Section`
+- `PlayerProfile` participates through `Registration`
+- `Registration` connects player identity, section placement, payment state, and operational status
+- `Section` owns `Round`
+- `Round` owns `Pairing`
+- `Pairing` owns or references `Result`
+- `Team` and `TeamMembership` sit alongside registration for team events
+- `AuditEvent`, `NotificationRecord`, and `ReportingPackage` attach across the model as cross-cutting support entities
 
 ## Important State Boundaries
 
@@ -454,7 +456,7 @@ The following states should remain conceptually separate:
 
 These are architecture questions, not unresolved product requirements:
 
-- whether  should be a standalone entity or a field set on 
+- whether `CheckInRecord` should be a standalone entity or a field set on `Registration`
 - whether pairing participants should reference registrations directly or a more abstract competitor slot model
 - whether team-event pairings need a specialized pairing model separate from individual pairings
 - how to model rating snapshots and eligibility evidence without over-coupling to external lookup assumptions

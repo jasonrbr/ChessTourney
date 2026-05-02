@@ -2,9 +2,9 @@
 
 ## Status
 
-- Phase: Discovery complete; architecture approved for Milestone 1; implementation started
-- Coding status: Milestone 1 in progress
-- Last updated: 2026-05-01
+- Phase: Discovery complete; architecture approved for Milestone 1; implementation in progress
+- Coding status: Prisma-backed tournament test-run slice committed
+- Last updated: 2026-05-02
 
 ## Purpose
 
@@ -34,8 +34,12 @@ Current implementation status:
 - role and permission model is drafted
 - implementation baseline and milestone plan are drafted and being used
 - the SvelteKit application baseline has been scaffolded
-- the first organization-side tournament-management screens are in place using mock data
-- Prisma-backed persistence, auth/session wiring, and real organization/tournament models are the next implementation targets
+- PostgreSQL and Prisma are wired for local development
+- public tournament listing, public registration, and TD tournament workspace routes are in place
+- tournament creation/editing supports visibility/status, bye score defaults, multiple sections, and section eligibility
+- Double Round Swiss pairings, requested byes, pairing byes, combined two-game score entry, and standings are implemented for the current test-run format
+- unit tests cover the hard pairing, scoring, and standings logic
+- auth/session wiring, organization membership, payments, reporting/export, prize calculation, printing, and PWA offline support remain future implementation targets
 - PWA-based offline tournament operations are now an explicit planning constraint for event operations
 
 ## Confirmed Requirements
@@ -346,22 +350,20 @@ Milestone 1 currently includes:
 - SvelteKit project scaffold
 - application shell and primary navigation
 - organization-side tournament workspace routes
-- mock tournament list, draft-creation, and detail/edit screens
+- local PostgreSQL and Prisma setup
+- Prisma models for tournaments, sections, players, registrations, bye requests, rounds, and pairings
+- public tournament discovery, event detail, and registration pages
+- TD tournament runner with configuration editing, section management, walk-ins, requested byes, pairings, result entry, and standings
+- Double Round Swiss domain logic for the current blitz test-run format
+- focused unit tests for scoring, standings, and pairing behavior
 
-The next implementation step is to replace the mock tournament data with Prisma-backed models for:
+The next implementation steps are:
 
-- `Organization`
-- `OrganizationMembership`
-- `Affiliate`
-- `Tournament`
-- `Section`
-  - Authentication/MFA services
-- Initial wireframes or low-fidelity UI flows for:
-  - Public tournament discovery and registration
-  - TD tournament setup
-  - Section configuration and eligibility rules
-  - Pairings/results management
-  - Staff desk workflows
+- decide whether the next slice prioritizes organization/auth/MFA or more day-of-event tournament operations
+- add organization and affiliate models instead of string-only organizer/affiliate fields
+- add audit history for sensitive TD actions and result corrections
+- add result export and local backup/export paths for the test-run workflow
+- continue shaping event operations so they can later run from a PWA offline tournament packet
 
 ## Recommended Delivery Strategy
 

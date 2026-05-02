@@ -1,5 +1,25 @@
 # ChessTourney Decision Log
 
+## 2026-05-02
+
+### Confirmed Decisions
+
+- The current test-run implementation intentionally skips user/auth setup so the tournament-running workflow can be tested sooner.
+- PostgreSQL remains the local database target; do not switch the implementation to SQLite for the MVP path.
+- The initial runnable event format is Blitz Double Round Swiss, where each pairing represents two games and result entry records each player's combined score.
+- Pairings show the player who has White in the first game; individual game results are not tracked in the current UI.
+- Requested bye default score and odd-player pairing bye score are tournament-level configuration fields.
+- Pairing byes and requested byes must display both bye type and awarded score.
+- Section eligibility is configurable per section with rating floor, rating ceiling, and unrated-player policy.
+- The seed script may remain sample-data oriented, but it should not wipe unrelated local data.
+- Unit tests should focus on hard tournament logic such as scoring, standings, and pairing behavior rather than testing that Svelte renders normally.
+
+### Still Open
+
+- Whether the next implementation slice should prioritize organization/auth/MFA or continue toward a hosted test-run event with export/audit/offline-readiness improvements.
+- How TD overrides for section eligibility should be represented in the database and audit log.
+- What minimal result export format is most useful for the first real tournament test.
+
 ## 2026-05-01
 
 ### Confirmed Decisions

@@ -10,7 +10,31 @@ It is intentionally opinionated. The goal is to reduce ambiguity enough to begin
 
 - Active implementation baseline for Milestone 1
 - Current starting point for MVP implementation
-- In use for the first coding slice
+- In use for the current coding slices
+
+## Current Code State
+
+The repository now contains a runnable Prisma-backed test-run slice for a Blitz Double Round Swiss event. It intentionally skips user/auth setup for now so the tournament workflow can be tested quickly.
+
+Implemented in the current codebase:
+
+- local PostgreSQL setup with Docker Compose
+- Prisma schema and seed data for a Michigan-based sample event
+- public tournament listing, event detail, and guest registration
+- TD tournament workspace for creating, editing, publishing, and running tournaments
+- configurable tournament visibility/status, bye score defaults, multiple sections, and section eligibility
+- Double Round Swiss pairing generation per section
+- requested byes, odd-player pairing byes, combined two-game result entry, and standings
+- focused unit tests for scoring, standings, and pairing logic
+
+Still not implemented:
+
+- organization accounts, auth, sessions, MFA, and role permissions
+- hosted deployment
+- payment state and hosted checkout
+- printing, export, reporting/submission, and local backup files
+- prize configuration and prize award calculation
+- PWA offline packet, local command queue, and sync/review flow
 
 ## Recommended Stack
 
@@ -359,17 +383,21 @@ Completed in the current codebase:
 
 - SvelteKit scaffold and project tooling baseline
 - top-level application shell
-- organization-side route structure for tournament management
-- first-pass tournament list, create, and detail/edit screens using typed mock data
+- local PostgreSQL and Prisma baseline
+- public and TD tournament routes backed by Prisma
+- tournament create/edit/run screens
+- section eligibility configuration and enforcement for registration/walk-ins
+- Double Round Swiss pairings, byes, result entry, and standings for the current test-run format
+- unit tests for pairing, scoring, and standings domain logic
 
-Next implementation target:
+Recommended next implementation target:
 
-- add Prisma and the initial relational schema
-- replace mock tournament loaders with real persistence
+- add organization/auth/MFA foundations, or
+- continue the tournament test-run slice with exports/local backup and audit history before hosting a real trial event
 
 Offline planning note:
 
-- before implementing check-in, pairings, results, printing, or exports, review `OfflineOperationsPlan.md` and keep those workflows command-oriented so they can run from local PWA data during an internet outage
+- before making check-in, pairings, results, printing, or exports offline-capable, review `OfflineOperationsPlan.md` and keep those workflows command-oriented so they can run from local PWA data during an internet outage
 
 ## Recommended Milestone After That
 
