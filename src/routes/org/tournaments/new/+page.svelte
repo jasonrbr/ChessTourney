@@ -2,34 +2,27 @@
 	<title>Create Tournament | ChessTourney</title>
 </svelte:head>
 
-<script lang="ts">
-	const sectionExamples = ['Open', 'Under 1800', 'Under 1400'];
-</script>
-
 <section class="page">
 	<header>
-		<h2>Create a draft tournament</h2>
-		<p>Set up tournament details, rating context, sections, and publication readiness.</p>
+		<h2>Create a tournament</h2>
+		<p>Set up a Blitz Double Round Swiss event with public registration.</p>
 	</header>
 
-	<form class="form">
+	<form class="form" method="POST">
 		<div class="grid">
 			<label>
 				<span>Tournament name</span>
-				<input name="name" placeholder="Spring Open 2026" />
+				<input name="name" placeholder="Friday Night Blitz" required />
 			</label>
 
 			<label>
 				<span>Organization</span>
-				<select name="organization">
-					<option>Cleveland Chess Club</option>
-					<option>North Coast Scholastic Chess</option>
-				</select>
+				<input name="organizationName" placeholder="Michigan Chess Club" />
 			</label>
 
 			<label>
 				<span>Start date</span>
-				<input type="date" name="startDate" />
+				<input type="date" name="startDate" required />
 			</label>
 
 			<label>
@@ -38,68 +31,72 @@
 			</label>
 
 			<label>
-				<span>Format family</span>
-				<select name="format">
-					<option>Swiss</option>
-					<option>Round Robin</option>
-					<option>Team</option>
+				<span>Location</span>
+				<input name="location" placeholder="Ann Arbor, MI" required />
+			</label>
+
+			<label>
+				<span>Section</span>
+				<input name="sectionName" value="Open" />
+			</label>
+
+			<label>
+				<span>Minimum rating</span>
+				<input name="minRating" inputmode="numeric" placeholder="Optional" />
+			</label>
+
+			<label>
+				<span>Maximum rating</span>
+				<input name="maxRating" inputmode="numeric" placeholder="Optional" />
+			</label>
+
+			<label>
+				<span>Unrated players</span>
+				<select name="unratedPolicy">
+					<option value="TD_REVIEW">TD review</option>
+					<option value="ALLOWED">Allowed</option>
+					<option value="BLOCKED">Not eligible</option>
 				</select>
 			</label>
 
 			<label>
-				<span>Location</span>
-				<input name="location" placeholder="Cleveland, OH" />
+				<span>Format</span>
+				<input value="Double Round Swiss" disabled />
+			</label>
+
+			<label>
+				<span>Time control</span>
+				<input name="timeControl" value="5+0" />
+			</label>
+
+			<label>
+				<span>Rounds</span>
+				<input type="number" min="1" max="12" name="totalRounds" value="4" />
+			</label>
+
+			<label>
+				<span>Pairing bye score</span>
+				<input name="pairingByeScore" inputmode="decimal" value="2" />
+			</label>
+
+			<label>
+				<span>Requested bye score</span>
+				<input name="requestedByeScore" inputmode="decimal" value="1" />
+			</label>
+
+			<label>
+				<span>USCF affiliate</span>
+				<input name="affiliateName" placeholder="Michigan Chess Club USCF Affiliate" />
 			</label>
 		</div>
 
-		<fieldset>
-			<legend>Rating context</legend>
-			<label class="checkbox">
-				<input type="checkbox" name="isRated" checked />
-				<span>USCF-rated event</span>
-			</label>
-			<label class="checkbox">
-				<input type="checkbox" name="isFideRated" />
-				<span>Also FIDE-rated</span>
-			</label>
-			<label>
-				<span>Affiliate</span>
-				<select name="affiliate">
-					<option>Cleveland Chess Club USCF Affiliate</option>
-					<option>North Coast Scholastic Affiliate</option>
-				</select>
-			</label>
-			<p class="hint">Rated events need exactly one affiliate before they can be published.</p>
-		</fieldset>
-
-		<fieldset>
-			<legend>Sections</legend>
-			<ul class="section-list">
-				{#each sectionExamples as section}
-					<li>{section}</li>
-				{/each}
-			</ul>
-		</fieldset>
-
-		<fieldset>
-			<legend>Operations</legend>
-			<label class="checkbox">
-				<input type="checkbox" name="checkInEnabled" checked />
-				<span>Enable staff-managed check-in</span>
-			</label>
-			<label>
-				<span>Payment mode</span>
-				<select name="paymentMode">
-					<option>Deferred</option>
-					<option>Offline only</option>
-					<option>Hosted online later</option>
-				</select>
-			</label>
-		</fieldset>
+		<label class="checkbox">
+			<input type="checkbox" name="isRated" checked />
+			<span>USCF-rated event</span>
+		</label>
 
 		<div class="actions">
-			<button type="button">Save draft</button>
-			<button type="button" class="secondary">Validate for publication</button>
+			<button>Create tournament</button>
 		</div>
 	</form>
 </section>
@@ -133,14 +130,12 @@
 		gap: 1rem;
 	}
 
-	label,
-	fieldset {
+	label {
 		display: grid;
 		gap: 0.45rem;
 	}
 
-	label span,
-	legend {
+	label span {
 		font-weight: 700;
 		color: #1d3537;
 	}
@@ -154,10 +149,8 @@
 		font: inherit;
 	}
 
-	fieldset {
-		padding: 1rem;
-		border: 1px solid #dfe6e4;
-		border-radius: 1rem;
+	input:disabled {
+		color: #4b5d62;
 	}
 
 	.checkbox {
@@ -167,18 +160,6 @@
 
 	.checkbox input {
 		margin: 0;
-	}
-
-	.hint {
-		margin: 0;
-		color: #61737a;
-		font-size: 0.95rem;
-	}
-
-	.section-list {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: #20363a;
 	}
 
 	.actions {
@@ -195,11 +176,6 @@
 		color: #f7f4ea;
 		font: inherit;
 		font-weight: 700;
-	}
-
-	button.secondary {
-		background: #d8e3df;
-		color: #1d3b39;
 	}
 
 	@media (min-width: 800px) {

@@ -3,12 +3,14 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const formatDate = (value: string) =>
+	const formatDate = (value: Date | string) =>
 		new Intl.DateTimeFormat('en-US', {
 			month: 'short',
 			day: 'numeric',
 			year: 'numeric'
-		}).format(new Date(`${value}T00:00:00`));
+		}).format(new Date(value));
+
+	const statusLabel = (value: string) => value.replaceAll('_', ' ').toLowerCase();
 </script>
 
 <svelte:head>
@@ -18,7 +20,7 @@
 <section class="toolbar">
 	<div>
 		<h2>All tournaments</h2>
-		<p>Drafts stay private. Published events become visible on the public side.</p>
+		<p>Set up registration, run rounds, and enter scores from the TD workspace.</p>
 	</div>
 	<a href="/org/tournaments/new">Create tournament</a>
 </section>
@@ -27,8 +29,8 @@
 	{#each data.tournaments as tournament}
 		<article class="card">
 			<div class="topline">
-				<span class:published={tournament.visibility === 'published'}>{tournament.visibility}</span>
-				<span>{tournament.format}</span>
+				<span class:published={tournament.visibility === 'PUBLISHED'}>{statusLabel(tournament.visibility)}</span>
+				<span>{statusLabel(tournament.status)}</span>
 			</div>
 
 			<div class="title-row">
@@ -40,29 +42,32 @@
 
 			<dl class="meta">
 				<div>
-					<dt>Dates</dt>
-					<dd>{formatDate(tournament.startDate)} - {formatDate(tournament.endDate)}</dd>
+					<dt>Date</dt>
+					<dd>{formatDate(tournament.startDate)}</dd>
 				</div>
 				<div>
-					<dt>Affiliate</dt>
-					<dd>{tournament.affiliateName ?? 'Not required yet'}</dd>
+					<dt>Format</dt>
+					<dd>Double Round Swiss · {tournament.timeControl}</dd>
 				</div>
 				<div>
-					<dt>Sections</dt>
-					<dd>{tournament.sections.length}</dd>
+					<dt>Players</dt>
+					<dd>{tournament.registrations.length}</dd>
 				</div>
 				<div>
-					<dt>Payment</dt>
-					<dd>{tournament.paymentMode}</dd>
+					<dt>Rounds</dt>
+					<dd>{tournament.totalRounds}</dd>
 				</div>
 			</dl>
-
-			{#if tournament.isRated && !tournament.affiliateName}
-				<p class="warning">Rated tournaments need exactly one affiliate before publication.</p>
-			{/if}
 		</article>
 	{/each}
 </section>
+
+{#if data.tournaments.length === 0}
+	<section class="empty">
+		<h3>No tournaments yet</h3>
+		<a href="/org/tournaments/new">Create the first tournament</a>
+	</section>
+{/if}
 
 <style>
 	.toolbar {
@@ -82,7 +87,8 @@
 		color: #52646a;
 	}
 
-	.toolbar a {
+	.toolbar a,
+	.empty a {
 		display: inline-flex;
 		padding: 0.8rem 1rem;
 		border-radius: 999px;
@@ -97,7 +103,8 @@
 		gap: 1rem;
 	}
 
-	.card {
+	.card,
+	.empty {
 		padding: 1.2rem;
 		border-radius: 1.1rem;
 		background: rgba(255, 255, 255, 0.82);
@@ -158,14 +165,6 @@
 	dd {
 		margin: 0.25rem 0 0;
 		color: #20363a;
-	}
-
-	.warning {
-		margin: 1rem 0 0;
-		padding: 0.8rem 0.9rem;
-		border-radius: 0.8rem;
-		background: #fff3dd;
-		color: #7d4c10;
 	}
 
 	@media (min-width: 900px) {

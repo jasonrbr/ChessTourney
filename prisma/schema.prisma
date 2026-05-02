@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TournamentVisibility {
+  DRAFT
+  PUBLISHED
+}
+
+enum TournamentStatus {
+  SETUP
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETE
+}
+
+enum TournamentFormat {
+  DOUBLE_ROUND_SWISS
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  WITHDRAWN
+}
+
+enum PairingType {
+  GAME
+  BYE
+}
+
+enum ByeType {
+  PAIRING
+  REQUESTED
+  ZERO_POINT
+}
+
+enum PairingStatus {
+  PENDING
+  COMPLETE
+}
+
+enum UnratedPolicy {
+  ALLOWED
+  BLOCKED
+  TD_REVIEW
+}
+
+model Tournament {
+  id                 String               @id @default(cuid())
+  slug               String               @unique
+  name               String
+  organizationName   String
+  location           String
+  startDate          DateTime
+  endDate            DateTime
+  visibility         TournamentVisibility @default(DRAFT)
+  status             TournamentStatus     @default(SETUP)
+  format             TournamentFormat     @default(DOUBLE_ROUND_SWISS)
+  timeControl        String               @default("5+0")
+  totalRounds        Int                  @default(4)
+  isRated            Boolean              @default(false)
+  affiliateName      String?
+  pairingByeScore    Int                  @default(4)
+  requestedByeScore  Int                  @default(2)
+  sections           Section[]
+  registrations      Registration[]
+  rounds             Round[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+model Section {
+  id            String         @id @default(cuid())
+  tournamentId  String
+  tournament    Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name          String
+  minRating     Int?
+  maxRating     Int?
+  unratedPolicy UnratedPolicy  @default(TD_REVIEW)
+  registrations Registration[]
+  rounds       Round[]
+  byeRequests  ByeRequest[]
+  createdAt    DateTime       @default(now())
+}
+
+model Player {
+  id            String         @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String?
+  rating        Int?
+  registrations Registration[]
+  createdAt     DateTime       @default(now())
+}
+
+model Registration {
+  id             String             @id @default(cuid())
+  tournamentId   String
+  tournament     Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  sectionId      String
+  section        Section            @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  playerId       String
+  player         Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  status         RegistrationStatus @default(REGISTERED)
+  seedRating     Int?
+  createdAt      DateTime           @default(now())
+  whitePairings  Pairing[]          @relation("WhiteFirst")
+  blackPairings  Pairing[]          @relation("BlackFirst")
+  byePairings    Pairing[]          @relation("ByePlayer")
+  byeRequests    ByeRequest[]
+}
+
+model ByeRequest {
+  id             String       @id @default(cuid())
+  sectionId      String
+  section        Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  roundNumber    Int
+  scoreUnits     Int
+  note           String?
+  createdAt      DateTime     @default(now())
+
+  @@unique([registrationId, roundNumber])
+}
+
+model Round {
+  id           String      @id @default(cuid())
+  tournamentId String
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  sectionId    String
+  section      Section     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  number       Int
+  pairings     Pairing[]
+  createdAt    DateTime    @default(now())
+  completedAt  DateTime?
+
+  @@unique([sectionId, number])
+}
+
+model Pairing {
+  id                       String        @id @default(cuid())
+  roundId                  String
+  round                    Round         @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  boardNumber              Int
+  pairingType              PairingType   @default(GAME)
+  status                   PairingStatus @default(PENDING)
+  whiteFirstRegistrationId String?
+  whiteFirstRegistration   Registration? @relation("WhiteFirst", fields: [whiteFirstRegistrationId], references: [id])
+  blackFirstRegistrationId String?
+  blackFirstRegistration   Registration? @relation("BlackFirst", fields: [blackFirstRegistrationId], references: [id])
+  whiteFirstScoreUnits     Int?
+  blackFirstScoreUnits     Int?
+  byeRegistrationId        String?
+  byeRegistration          Registration? @relation("ByePlayer", fields: [byeRegistrationId], references: [id])
+  byeType                  ByeType?
+  byeScoreUnits            Int?
+  createdAt                DateTime      @default(now())
+}

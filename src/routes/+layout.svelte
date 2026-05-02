@@ -5,8 +5,9 @@
 
 	const links = [
 		{ href: '/', label: 'Home' },
-		{ href: '/org/tournaments', label: 'Tournament workspace' },
-		{ href: '/org/tournaments/new', label: 'Create draft' }
+		{ href: '/tournaments', label: 'Public tournaments' },
+		{ href: '/org/tournaments', label: 'TD workspace' },
+		{ href: '/org/tournaments/new', label: 'Create tournament' }
 	];
 </script>
 
