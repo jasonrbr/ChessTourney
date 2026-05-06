@@ -38,6 +38,7 @@ Current implementation status:
 - public tournament listing, public registration, and TD tournament workspace routes are in place
 - tournament creation/editing supports visibility/status, bye score defaults, multiple sections, and section eligibility
 - TD registration review is available for unrated players in sections configured for TD review
+- pre-round section removal supports bulk or per-player registration reassignment to remaining sections
 - Double Round Swiss pairings, requested byes, pairing byes, combined two-game score entry, and standings are implemented for the current test-run format
 - unit tests cover the hard pairing, scoring, and standings logic
 - auth/session wiring, organization membership, payments, reporting/export, prize calculation, printing, and PWA offline support remain future implementation targets

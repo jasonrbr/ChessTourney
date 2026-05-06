@@ -399,6 +399,93 @@ export async function updateSection(slug: string, form: FormData) {
 	});
 }
 
+export async function removeSection(slug: string, form: FormData) {
+	const sectionId = textFromForm(form, 'sectionId');
+	const reassignmentMode = textFromForm(form, 'reassignmentMode', 'bulk');
+
+	if (!sectionId) return fail(400, { message: 'Choose a section to remove.' });
+
+	const section = await prisma.section.findFirst({
+		where: { id: sectionId, tournament: { slug } },
+		include: {
+			registrations: true,
+			rounds: true,
+			tournament: { include: { sections: true } }
+		}
+	});
+	if (!section) return fail(404, { message: 'Section not found.' });
+
+	if (section.tournament.sections.length <= 1) {
+		return fail(400, { message: 'Add another section before removing this one.' });
+	}
+
+	if (section.rounds.length > 0) {
+		return fail(400, { message: 'Sections with generated rounds cannot be removed yet.' });
+	}
+
+	const destinationSections = section.tournament.sections.filter((entry) => entry.id !== section.id);
+	const destinationById = new Map(destinationSections.map((entry) => [entry.id, entry]));
+	const assignments = new Map<string, string>();
+
+	if (section.registrations.length > 0) {
+		if (reassignmentMode === 'bulk') {
+			const destinationSectionId = textFromForm(form, 'bulkDestinationSectionId');
+			if (!destinationById.has(destinationSectionId)) {
+				return fail(400, { message: 'Choose a destination section for the registrations.' });
+			}
+
+			for (const registration of section.registrations) {
+				assignments.set(registration.id, destinationSectionId);
+			}
+		} else if (reassignmentMode === 'perRegistration') {
+			for (const registration of section.registrations) {
+				const destinationSectionId = textFromForm(form, `destinationSectionId-${registration.id}`);
+				if (!destinationById.has(destinationSectionId)) {
+					return fail(400, { message: 'Choose a destination section for every registration.' });
+				}
+				assignments.set(registration.id, destinationSectionId);
+			}
+		} else {
+			return fail(400, { message: 'Choose how to move the registrations.' });
+		}
+	}
+
+	await prisma.$transaction(async (tx) => {
+		for (const registration of section.registrations) {
+			const destinationSectionId = assignments.get(registration.id);
+			if (!destinationSectionId) continue;
+
+			const destinationSection = destinationById.get(destinationSectionId);
+			if (!destinationSection) continue;
+
+			const review =
+				registration.status === 'REGISTERED'
+					? eligibilityReviewFromSection(destinationSection, registration.seedRating)
+					: {
+							eligibilityReviewStatus: registration.eligibilityReviewStatus,
+							eligibilityReviewReason: registration.eligibilityReviewReason
+						};
+
+			await tx.registration.update({
+				where: { id: registration.id },
+				data: {
+					sectionId: destinationSectionId,
+					eligibilityReviewStatus: review.eligibilityReviewStatus,
+					eligibilityReviewReason: review.eligibilityReviewReason,
+					eligibilityReviewedAt: null
+				}
+			});
+
+			await tx.byeRequest.updateMany({
+				where: { registrationId: registration.id, sectionId: section.id },
+				data: { sectionId: destinationSectionId }
+			});
+		}
+
+		await tx.section.delete({ where: { id: section.id } });
+	});
+}
+
 export async function registerPlayer(slug: string, form: FormData) {
 	const tournament = await prisma.tournament.findUnique({
 		where: { slug },

@@ -24,6 +24,7 @@ Implemented in the current codebase:
 - TD tournament workspace for creating, editing, publishing, and running tournaments
 - configurable tournament visibility/status, bye score defaults, multiple sections, and section eligibility
 - TD registration review for unrated players in sections configured for TD review
+- pre-round section removal with bulk or per-player registration reassignment
 - Double Round Swiss pairing generation per section
 - requested byes, odd-player pairing byes, combined two-game result entry, and standings
 - focused unit tests for scoring, standings, and pairing logic

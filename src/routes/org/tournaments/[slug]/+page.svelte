@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import type { PageData, SubmitFunction } from './$types';
+	import type { ActionData, PageData, SubmitFunction } from './$types';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+	const actionMessage = $derived(form && 'message' in form ? form.message : null);
 
 	const scoreLabel = (scoreUnits: number | null | undefined) =>
 		scoreUnits == null ? '' : String(scoreUnits / 2).replace('.5', '.5');
@@ -24,6 +25,12 @@
 		data.tournament.sections.find((section) => section.id === sectionId)?.name ?? 'Section';
 	const sectionRegistrationCount = (sectionId: string) =>
 		data.tournament.registrations.filter((registration) => registration.sectionId === sectionId).length;
+	const sectionRegistrations = (sectionId: string) =>
+		data.tournament.registrations.filter((registration) => registration.sectionId === sectionId);
+	const otherSections = (sectionId: string) =>
+		data.tournament.sections.filter((section) => section.id !== sectionId);
+	const sectionHasRounds = (sectionId: string) =>
+		data.tournament.rounds.some((round) => round.sectionId === sectionId);
 	const registrationNeedsEligibilityReview = (registration: {
 		seedRating: number | null;
 		eligibilityReviewStatus: string;
@@ -135,6 +142,10 @@
 			<a class="secondary" href="/org/tournaments">All tournaments</a>
 		</div>
 	</header>
+
+	{#if actionMessage}
+		<p class="form-error" role="alert">{actionMessage}</p>
+	{/if}
 
 	<section class="quick-grid">
 		<article class="card">
@@ -302,46 +313,94 @@
 
 		<div class="section-list">
 			{#each data.tournament.sections as section}
-				<form method="POST" action="?/updateSection" class="section-editor" use:enhance={preserveScroll}>
-					<input type="hidden" name="sectionId" value={section.id} />
-					<div>
-						<h4>{section.name}</h4>
-						<p>{sectionRegistrationCount(section.id)} players · {sectionEligibility(section)}</p>
-					</div>
+				<div class="section-editor">
+					<form method="POST" action="?/updateSection" class="section-update" use:enhance={preserveScroll}>
+						<input type="hidden" name="sectionId" value={section.id} />
+						<div>
+							<h4>{section.name}</h4>
+							<p>{sectionRegistrationCount(section.id)} players · {sectionEligibility(section)}</p>
+						</div>
 
-					<div class="section-fields">
-						<label>
-							<span>Name</span>
-							<input name="name" value={section.name} required />
-						</label>
+						<div class="section-fields">
+							<label>
+								<span>Name</span>
+								<input name="name" value={section.name} required />
+							</label>
 
-						<label>
-							<span>Minimum rating</span>
-							<input
-								name="minRating"
-								inputmode="numeric"
-								value={section.minRating ?? ''}
-								oninput={syncDefaultUnratedPolicy}
-							/>
-						</label>
+							<label>
+								<span>Minimum rating</span>
+								<input
+									name="minRating"
+									inputmode="numeric"
+									value={section.minRating ?? ''}
+									oninput={syncDefaultUnratedPolicy}
+								/>
+							</label>
 
-						<label>
-							<span>Maximum rating</span>
-							<input name="maxRating" inputmode="numeric" value={section.maxRating ?? ''} />
-						</label>
+							<label>
+								<span>Maximum rating</span>
+								<input name="maxRating" inputmode="numeric" value={section.maxRating ?? ''} />
+							</label>
 
-						<label>
-							<span>Unrated players</span>
-							<select name="unratedPolicy" onchange={markUnratedPolicyTouched}>
-								<option value="ALLOWED" selected={section.unratedPolicy === 'ALLOWED'}>Allowed</option>
-								<option value="TD_REVIEW" selected={section.unratedPolicy === 'TD_REVIEW'}>TD review</option>
-								<option value="BLOCKED" selected={section.unratedPolicy === 'BLOCKED'}>Not eligible</option>
-							</select>
-						</label>
-					</div>
+							<label>
+								<span>Unrated players</span>
+								<select name="unratedPolicy" onchange={markUnratedPolicyTouched}>
+									<option value="ALLOWED" selected={section.unratedPolicy === 'ALLOWED'}>Allowed</option>
+									<option value="TD_REVIEW" selected={section.unratedPolicy === 'TD_REVIEW'}>TD review</option>
+									<option value="BLOCKED" selected={section.unratedPolicy === 'BLOCKED'}>Not eligible</option>
+								</select>
+							</label>
+						</div>
 
-					<button class="save">Save section</button>
-				</form>
+						<button class="save">Save section</button>
+					</form>
+
+					{#if otherSections(section.id).length > 0}
+						<details class="remove-section">
+							<summary>Remove section</summary>
+							{#if sectionHasRounds(section.id)}
+								<p class="section-note">Sections with generated rounds cannot be removed.</p>
+							{:else}
+								<form method="POST" action="?/removeSection" class="remove-section-form" use:enhance={preserveScroll}>
+									<input type="hidden" name="sectionId" value={section.id} />
+
+									{#if sectionRegistrations(section.id).length > 0}
+										<div class="bulk-move">
+											<label>
+												<span>Move all registrations to</span>
+												<select name="bulkDestinationSectionId">
+													{#each otherSections(section.id) as destination}
+														<option value={destination.id}>{destination.name}</option>
+													{/each}
+												</select>
+											</label>
+											<button name="reassignmentMode" value="bulk">Move all and remove</button>
+										</div>
+
+										<div class="player-move-list">
+											<h5>Assign individually</h5>
+											{#each sectionRegistrations(section.id) as registration}
+												<label class="player-move">
+													<span>{playerName(registration)} · {registration.seedRating ?? 'Unrated'}</span>
+													<select name={`destinationSectionId-${registration.id}`}>
+														{#each otherSections(section.id) as destination}
+															<option value={destination.id}>{destination.name}</option>
+														{/each}
+													</select>
+												</label>
+											{/each}
+											<button class="secondary" name="reassignmentMode" value="perRegistration">
+												Move selected and remove
+											</button>
+										</div>
+									{:else}
+										<button name="reassignmentMode" value="bulk">Remove empty section</button>
+									{/if}
+								</form>
+							{/if}
+						</details>
+					{/if}
+				</div>
 			{/each}
 		</div>
 
@@ -555,6 +614,15 @@
 		border: 1px solid #d9e2df;
 	}
 
+	.form-error {
+		margin: 0;
+		padding: 0.9rem 1rem;
+		border-radius: 0.75rem;
+		background: #fff0ec;
+		color: #8a2f20;
+		font-weight: 800;
+	}
+
 	.hero {
 		display: flex;
 		flex-wrap: wrap;
@@ -661,9 +729,13 @@
 	.roster,
 	.config-form,
 	.config-grid,
+	.bulk-move,
+	.player-move-list,
 	.review-list,
+	.remove-section-form,
 	.section-list,
 	.section-fields,
+	.section-update,
 	.pairing-form,
 	.round-sections,
 	.standings {
@@ -710,7 +782,8 @@
 		gap: 0.25rem;
 	}
 
-	.review-actions {
+	.review-actions,
+	.bulk-move {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.55rem;
@@ -719,6 +792,53 @@
 	.section-editor p {
 		margin: 0.25rem 0 0;
 		color: #607177;
+	}
+
+	.section-update {
+		gap: 0.75rem;
+	}
+
+	.remove-section {
+		padding-top: 0.75rem;
+		border-top: 1px solid #ece3d5;
+	}
+
+	.remove-section summary {
+		cursor: pointer;
+		font-weight: 900;
+		color: #8a2f20;
+	}
+
+	.remove-section-form {
+		margin-top: 0.75rem;
+	}
+
+	.section-note {
+		margin: 0.75rem 0 0;
+		color: #607177;
+	}
+
+	.bulk-move {
+		align-items: end;
+	}
+
+	.bulk-move label {
+		min-width: min(100%, 18rem);
+	}
+
+	.player-move-list {
+		padding-top: 0.75rem;
+		border-top: 1px solid #ece3d5;
+	}
+
+	.player-move-list h5 {
+		margin: 0;
+		font-size: 1rem;
+	}
+
+	.player-move {
+		grid-template-columns: minmax(0, 1fr);
+		align-items: center;
 	}
 
 	.add-section {
@@ -851,6 +971,10 @@
 		.review-row {
 			grid-template-columns: minmax(0, 1fr) auto;
 			align-items: center;
+		}
+
+		.player-move {
+			grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.5fr);
 		}
 
 		.add-player,
