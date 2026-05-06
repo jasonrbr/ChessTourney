@@ -85,6 +85,7 @@ function enumFromForm<TAllowed extends readonly string[]>(
 function sectionEligibilityFromForm(form: FormData) {
 	const minRating = optionalIntFromForm(form.get('minRating'));
 	const maxRating = optionalIntFromForm(form.get('maxRating'));
+	const defaultUnratedPolicy = minRating == null ? 'ALLOWED' : 'TD_REVIEW';
 
 	if (minRating != null && maxRating != null && minRating > maxRating) {
 		return fail(400, { message: 'Section minimum rating cannot be higher than maximum rating.' });
@@ -93,7 +94,7 @@ function sectionEligibilityFromForm(form: FormData) {
 	return {
 		minRating,
 		maxRating,
-		unratedPolicy: enumFromForm(form.get('unratedPolicy'), unratedPolicies, 'TD_REVIEW')
+		unratedPolicy: enumFromForm(form.get('unratedPolicy'), unratedPolicies, defaultUnratedPolicy)
 	};
 }
 

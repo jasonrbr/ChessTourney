@@ -309,8 +309,8 @@
 						<label>
 							<span>Unrated players</span>
 							<select name="unratedPolicy">
-								<option value="TD_REVIEW" selected={section.unratedPolicy === 'TD_REVIEW'}>TD review</option>
 								<option value="ALLOWED" selected={section.unratedPolicy === 'ALLOWED'}>Allowed</option>
+								<option value="TD_REVIEW" selected={section.unratedPolicy === 'TD_REVIEW'}>TD review</option>
 								<option value="BLOCKED" selected={section.unratedPolicy === 'BLOCKED'}>Not eligible</option>
 							</select>
 						</label>
@@ -332,8 +332,8 @@
 			<input name="minRating" inputmode="numeric" placeholder="Minimum rating" />
 			<input name="maxRating" inputmode="numeric" placeholder="Maximum rating" />
 			<select name="unratedPolicy">
-				<option value="TD_REVIEW">TD review</option>
 				<option value="ALLOWED">Allowed</option>
+				<option value="TD_REVIEW">TD review</option>
 				<option value="BLOCKED">Not eligible</option>
 			</select>
 			<button>Add section</button>

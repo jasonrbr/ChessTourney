@@ -46,7 +46,7 @@ async function main() {
 		const section = await tx.section.create({
 			data: {
 				name: 'Open',
-				unratedPolicy: 'TD_REVIEW',
+				unratedPolicy: 'ALLOWED',
 				tournamentId: tournament.id
 			}
 		});
@@ -68,9 +68,7 @@ async function main() {
 					sectionId: section.id,
 					playerId: player.id,
 					seedRating: ratingValue,
-					eligibilityReviewStatus: ratingValue == null ? 'PENDING' : 'NOT_REQUIRED',
-					eligibilityReviewReason:
-						ratingValue == null ? `Unrated player requires TD review for ${section.name}.` : null
+					eligibilityReviewStatus: 'NOT_REQUIRED'
 				}
 			});
 		}

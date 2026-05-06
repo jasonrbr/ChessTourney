@@ -89,7 +89,7 @@ model Section {
   name          String
   minRating     Int?
   maxRating     Int?
-  unratedPolicy UnratedPolicy  @default(TD_REVIEW)
+  unratedPolicy UnratedPolicy  @default(ALLOWED)
   registrations Registration[]
   rounds        Round[]
   byeRequests   ByeRequest[]

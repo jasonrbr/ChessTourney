@@ -53,8 +53,8 @@
 			<label>
 				<span>Unrated players</span>
 				<select name="unratedPolicy">
-					<option value="TD_REVIEW">TD review</option>
 					<option value="ALLOWED">Allowed</option>
+					<option value="TD_REVIEW">TD review</option>
 					<option value="BLOCKED">Not eligible</option>
 				</select>
 			</label>
