@@ -29,7 +29,11 @@
 			<h1>{data.tournament.name}</h1>
 			<p>{data.tournament.organizationName} · {data.tournament.location} · {formatDate(data.tournament.startDate)}</p>
 		</div>
-		<a href={`/tournaments/${data.tournament.slug}/register`}>Register</a>
+		{#if data.registrationOpen}
+			<a href={`/tournaments/${data.tournament.slug}/register`}>Register</a>
+		{:else}
+			<span class="closed">Registration closed</span>
+		{/if}
 	</header>
 
 	{#if data.registered}
@@ -130,6 +134,14 @@
 		background: #1d3b39;
 		color: #f7f4ea;
 		text-decoration: none;
+		font-weight: 800;
+	}
+
+	.closed {
+		padding: 0.75rem 1rem;
+		border-radius: 999px;
+		background: #dbe5e2;
+		color: #1d3b39;
 		font-weight: 800;
 	}
 

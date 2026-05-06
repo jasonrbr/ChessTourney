@@ -1,5 +1,9 @@
 import { error } from '@sveltejs/kit';
-import { getTournamentBySlug, standingsFor } from '$lib/server/tournament-service';
+import {
+	getTournamentBySlug,
+	registrationIsOpen,
+	standingsFor
+} from '$lib/server/tournament-service';
 
 export async function load({ params, url }) {
 	const tournament = await getTournamentBySlug(params.slug);
@@ -10,6 +14,7 @@ export async function load({ params, url }) {
 
 	return {
 		tournament,
+		registrationOpen: registrationIsOpen(tournament),
 		standings: standingsFor(tournament),
 		registered: url.searchParams.get('registered') === '1'
 	};

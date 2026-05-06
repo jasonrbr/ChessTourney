@@ -206,6 +206,10 @@ export function playerName(player: { firstName: string; lastName: string }) {
 	return domainPlayerName(player);
 }
 
+export function registrationIsOpen(tournament: { status: string }) {
+	return tournament.status === 'SETUP' || tournament.status === 'REGISTRATION_OPEN';
+}
+
 export function standingsFor(tournament: TournamentDetail) {
 	return calculateStandings({
 		...tournament,
@@ -370,7 +374,7 @@ export async function registerPlayer(slug: string, form: FormData) {
 		return fail(404, { message: 'Tournament is not available for registration.' });
 	}
 
-	if (tournament.status !== 'REGISTRATION_OPEN' && tournament.status !== 'SETUP') {
+	if (!registrationIsOpen(tournament)) {
 		return fail(400, { message: 'Registration is closed.' });
 	}
 

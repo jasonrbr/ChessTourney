@@ -37,38 +37,45 @@
 		<p>Double Round Swiss · {data.tournament.timeControl}</p>
 	</header>
 
-	<form method="POST" class="form">
-		<label>
-			<span>First name</span>
-			<input name="firstName" required autocomplete="given-name" />
-		</label>
+	{#if data.registrationOpen}
+		<form method="POST" class="form">
+			<label>
+				<span>First name</span>
+				<input name="firstName" required autocomplete="given-name" />
+			</label>
 
-		<label>
-			<span>Last name</span>
-			<input name="lastName" required autocomplete="family-name" />
-		</label>
+			<label>
+				<span>Last name</span>
+				<input name="lastName" required autocomplete="family-name" />
+			</label>
 
-		<label>
-			<span>Email</span>
-			<input name="email" type="email" autocomplete="email" />
-		</label>
+			<label>
+				<span>Email</span>
+				<input name="email" type="email" autocomplete="email" />
+			</label>
 
-		<label>
-			<span>Rating</span>
-			<input name="rating" inputmode="numeric" placeholder="Optional" />
-		</label>
+			<label>
+				<span>Rating</span>
+				<input name="rating" inputmode="numeric" placeholder="Optional" />
+			</label>
 
-		<label>
-			<span>Section</span>
-			<select name="sectionId">
-				{#each data.tournament.sections as section}
-					<option value={section.id}>{section.name} ({sectionEligibility(section)})</option>
-				{/each}
-			</select>
-		</label>
+			<label>
+				<span>Section</span>
+				<select name="sectionId">
+					{#each data.tournament.sections as section}
+						<option value={section.id}>{section.name} ({sectionEligibility(section)})</option>
+					{/each}
+				</select>
+			</label>
 
-		<button>Register</button>
-	</form>
+			<button>Register</button>
+		</form>
+	{:else}
+		<section class="closed">
+			<h2>Registration closed</h2>
+			<a href={`/tournaments/${data.tournament.slug}`}>View tournament</a>
+		</section>
+	{/if}
 </section>
 
 <style>
@@ -86,13 +93,24 @@
 		color: #52646a;
 	}
 
-	.form {
+	.form,
+	.closed {
 		display: grid;
 		gap: 1rem;
 		padding: 1.1rem;
 		border-radius: 0.9rem;
 		background: rgba(255, 255, 255, 0.86);
 		border: 1px solid #d9e2df;
+	}
+
+	.closed h2 {
+		margin: 0;
+	}
+
+	.closed a {
+		justify-self: start;
+		color: #1d3b39;
+		font-weight: 800;
 	}
 
 	label {
