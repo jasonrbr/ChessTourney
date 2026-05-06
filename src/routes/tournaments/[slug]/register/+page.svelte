@@ -1,7 +1,18 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { data }: { data: PageData } = $props();
+	type RegistrationFormValues = {
+		firstName: string;
+		lastName: string;
+		email: string;
+		rating: string;
+		sectionId: string;
+	};
+
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+	const formValues = $derived(
+		form && 'values' in form ? (form.values as RegistrationFormValues) : undefined
+	);
 
 	const unratedPolicyLabel = (value: string) =>
 		({
@@ -39,31 +50,37 @@
 
 	{#if data.registrationOpen}
 		<form method="POST" class="form">
+			{#if form?.message}
+				<p class="error" role="alert">{form.message}</p>
+			{/if}
+
 			<label>
 				<span>First name</span>
-				<input name="firstName" required autocomplete="given-name" />
+				<input name="firstName" value={formValues?.firstName ?? ''} required autocomplete="given-name" />
 			</label>
 
 			<label>
 				<span>Last name</span>
-				<input name="lastName" required autocomplete="family-name" />
+				<input name="lastName" value={formValues?.lastName ?? ''} required autocomplete="family-name" />
 			</label>
 
 			<label>
 				<span>Email</span>
-				<input name="email" type="email" autocomplete="email" />
+				<input name="email" type="email" value={formValues?.email ?? ''} autocomplete="email" />
 			</label>
 
 			<label>
 				<span>Rating</span>
-				<input name="rating" inputmode="numeric" placeholder="Optional" />
+				<input name="rating" inputmode="numeric" value={formValues?.rating ?? ''} placeholder="Optional" />
 			</label>
 
 			<label>
 				<span>Section</span>
 				<select name="sectionId">
 					{#each data.tournament.sections as section}
-						<option value={section.id}>{section.name} ({sectionEligibility(section)})</option>
+						<option value={section.id} selected={formValues?.sectionId === section.id}>
+							{section.name} ({sectionEligibility(section)})
+						</option>
 					{/each}
 				</select>
 			</label>
@@ -110,6 +127,15 @@
 	.closed a {
 		justify-self: start;
 		color: #1d3b39;
+		font-weight: 800;
+	}
+
+	.error {
+		margin: 0;
+		padding: 0.85rem;
+		border-radius: 0.7rem;
+		background: #fff0ec;
+		color: #8a2f20;
 		font-weight: 800;
 	}
 

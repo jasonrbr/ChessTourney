@@ -61,6 +61,13 @@ function optionalIntFromForm(value: FormDataEntryValue | null) {
 	return Number.isInteger(number) ? number : null;
 }
 
+function wholeNumberFromText(value: string) {
+	if (!value) return null;
+
+	const number = Number(value);
+	return Number.isInteger(number) && number >= 0 ? number : undefined;
+}
+
 function positiveIntFromForm(value: FormDataEntryValue | null, fallback: number) {
 	const number = optionalIntFromForm(value);
 	return number != null && number > 0 ? number : fallback;
@@ -90,7 +97,7 @@ function sectionEligibilityFromForm(form: FormData) {
 	};
 }
 
-function validateSectionEligibility(
+function sectionEligibilityMessage(
 	section: {
 		name: string;
 		minRating: number | null;
@@ -101,20 +108,47 @@ function validateSectionEligibility(
 ) {
 	if (rating == null) {
 		if (section.unratedPolicy === 'BLOCKED') {
-			return fail(400, { message: `${section.name} does not allow unrated players.` });
+			return `${section.name} does not allow unrated players.`;
 		}
 		return null;
 	}
 
 	if (section.minRating != null && rating < section.minRating) {
-		return fail(400, { message: `${section.name} requires a rating of at least ${section.minRating}.` });
+		return `${section.name} requires a rating of at least ${section.minRating}.`;
 	}
 
 	if (section.maxRating != null && rating > section.maxRating) {
-		return fail(400, { message: `${section.name} is limited to ratings ${section.maxRating} and below.` });
+		return `${section.name} is limited to ratings ${section.maxRating} and below.`;
 	}
 
 	return null;
+}
+
+function validateSectionEligibility(
+	section: {
+		name: string;
+		minRating: number | null;
+		maxRating: number | null;
+		unratedPolicy: string;
+	},
+	rating: number | null
+) {
+	const message = sectionEligibilityMessage(section, rating);
+	return message ? fail(400, { message }) : null;
+}
+
+function registrationValuesFromForm(form: FormData, fallbackSectionId = '') {
+	return {
+		firstName: textFromForm(form, 'firstName'),
+		lastName: textFromForm(form, 'lastName'),
+		email: textFromForm(form, 'email'),
+		rating: textFromForm(form, 'rating'),
+		sectionId: textFromForm(form, 'sectionId', fallbackSectionId)
+	};
+}
+
+function failRegistration(status: number, message: string, values: ReturnType<typeof registrationValuesFromForm>) {
+	return fail(status, { message, values });
 }
 
 function eligibilityReviewFromSection(
@@ -378,29 +412,30 @@ export async function registerPlayer(slug: string, form: FormData) {
 		return fail(400, { message: 'Registration is closed.' });
 	}
 
-	const firstName = String(form.get('firstName') ?? '').trim();
-	const lastName = String(form.get('lastName') ?? '').trim();
-	const email = String(form.get('email') ?? '').trim() || null;
-	const ratingValue = optionalIntFromForm(form.get('rating'));
-	const sectionId = String(form.get('sectionId') ?? tournament.sections[0]?.id ?? '');
+	const values = registrationValuesFromForm(form, tournament.sections[0]?.id ?? '');
+	const ratingValue = wholeNumberFromText(values.rating);
 
-	if (!firstName || !lastName || !sectionId) {
-		return fail(400, { message: 'First name, last name, and section are required.' });
+	if (ratingValue === undefined) {
+		return failRegistration(400, 'Rating must be a whole number.', values);
 	}
 
-	const section = tournament.sections.find((entry) => entry.id === sectionId);
-	if (!section) return fail(400, { message: 'Choose a valid section.' });
+	if (!values.firstName || !values.lastName || !values.sectionId) {
+		return failRegistration(400, 'First name, last name, and section are required.', values);
+	}
 
-	const eligibilityError = validateSectionEligibility(section, ratingValue);
-	if (eligibilityError) return eligibilityError;
+	const section = tournament.sections.find((entry) => entry.id === values.sectionId);
+	if (!section) return failRegistration(400, 'Choose a valid section.', values);
+
+	const eligibilityMessage = sectionEligibilityMessage(section, ratingValue);
+	if (eligibilityMessage) return failRegistration(400, eligibilityMessage, values);
 	const eligibilityReview = eligibilityReviewFromSection(section, ratingValue);
 
 	await prisma.$transaction(async (tx) => {
 		const player = await tx.player.create({
 			data: {
-				firstName,
-				lastName,
-				email,
+				firstName: values.firstName,
+				lastName: values.lastName,
+				email: values.email || null,
 				rating: ratingValue
 			}
 		});
@@ -408,7 +443,7 @@ export async function registerPlayer(slug: string, form: FormData) {
 		await tx.registration.create({
 			data: {
 				tournamentId: tournament.id,
-				sectionId,
+				sectionId: values.sectionId,
 				playerId: player.id,
 				seedRating: player.rating,
 				...eligibilityReview
