@@ -380,7 +380,17 @@ export async function publishTournament(slug: string) {
 
 	await prisma.tournament.update({
 		where: { slug },
-		data: { visibility: 'PUBLISHED', status: 'REGISTRATION_OPEN' }
+		data: {
+			visibility: 'PUBLISHED',
+			status: tournament.status === 'SETUP' ? 'REGISTRATION_OPEN' : tournament.status
+		}
+	});
+}
+
+export async function unpublishTournament(slug: string) {
+	await prisma.tournament.update({
+		where: { slug },
+		data: { visibility: 'DRAFT' }
 	});
 }
 
@@ -391,10 +401,38 @@ export async function closeRegistration(slug: string) {
 	});
 }
 
+export async function reopenRegistration(slug: string) {
+	await prisma.tournament.update({
+		where: { slug },
+		data: { status: 'REGISTRATION_OPEN' }
+	});
+}
+
 export async function startTournament(slug: string) {
 	await prisma.tournament.update({
 		where: { slug },
 		data: { status: 'IN_PROGRESS', visibility: 'PUBLISHED' }
+	});
+}
+
+export async function returnToRegistrationClosed(slug: string) {
+	await prisma.tournament.update({
+		where: { slug },
+		data: { status: 'REGISTRATION_CLOSED' }
+	});
+}
+
+export async function completeTournament(slug: string) {
+	await prisma.tournament.update({
+		where: { slug },
+		data: { status: 'COMPLETE' }
+	});
+}
+
+export async function resumeTournament(slug: string) {
+	await prisma.tournament.update({
+		where: { slug },
+		data: { status: 'IN_PROGRESS' }
 	});
 }
 

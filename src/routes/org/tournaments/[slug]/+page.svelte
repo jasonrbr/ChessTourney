@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { enhance } from '$app/forms';
+	import type { PageData, SubmitFunction } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -56,6 +57,30 @@
 		if (white) white.value = whiteScore;
 		if (black) black.value = blackScore;
 	}
+
+	const preserveScroll: SubmitFunction = () => {
+		const scrollX = window.scrollX;
+		const scrollY = window.scrollY;
+
+		return async ({ result, update }) => {
+			await update({ reset: false });
+			if (result.type === 'success' || result.type === 'failure') {
+				requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
+			}
+		};
+	};
+
+	const preserveScrollAndResetOnSuccess: SubmitFunction = () => {
+		const scrollX = window.scrollX;
+		const scrollY = window.scrollY;
+
+		return async ({ result, update }) => {
+			await update({ reset: result.type === 'success' });
+			if (result.type === 'success' || result.type === 'failure') {
+				requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
+			}
+		};
+	};
 </script>
 
 <svelte:head>
@@ -92,21 +117,41 @@
 			<h3>Controls</h3>
 			<div class="button-stack">
 				{#if data.tournament.visibility === 'DRAFT'}
-					<form method="POST" action="?/publish">
-						<button>Publish registration</button>
+					<form method="POST" action="?/publish" use:enhance={preserveScroll}>
+						<button>{data.tournament.status === 'SETUP' ? 'Publish registration' : 'Publish'}</button>
+					</form>
+				{:else}
+					<form method="POST" action="?/unpublish" use:enhance={preserveScroll}>
+						<button class="secondary">Unpublish</button>
 					</form>
 				{/if}
 				{#if data.tournament.status === 'REGISTRATION_OPEN'}
-					<form method="POST" action="?/closeRegistration">
+					<form method="POST" action="?/closeRegistration" use:enhance={preserveScroll}>
 						<button>Close registration</button>
 					</form>
 				{/if}
 				{#if data.tournament.status === 'REGISTRATION_CLOSED'}
-					<form method="POST" action="?/start">
+					<form method="POST" action="?/reopenRegistration" use:enhance={preserveScroll}>
+						<button class="secondary">Reopen registration</button>
+					</form>
+					<form method="POST" action="?/start" use:enhance={preserveScroll}>
 						<button>Start tournament</button>
 					</form>
 				{/if}
-				<form method="POST" action="?/generateRound">
+				{#if data.tournament.status === 'IN_PROGRESS'}
+					<form method="POST" action="?/returnToRegistrationClosed" use:enhance={preserveScroll}>
+						<button class="secondary">Return to registration closed</button>
+					</form>
+					<form method="POST" action="?/complete" use:enhance={preserveScroll}>
+						<button>Mark complete</button>
+					</form>
+				{/if}
+				{#if data.tournament.status === 'COMPLETE'}
+					<form method="POST" action="?/resume" use:enhance={preserveScroll}>
+						<button class="secondary">Resume tournament</button>
+					</form>
+				{/if}
+				<form method="POST" action="?/generateRound" use:enhance={preserveScroll}>
 					<button disabled={!canGenerateRound}>Generate round {nextRoundNumber}</button>
 				</form>
 			</div>
@@ -121,7 +166,7 @@
 			</div>
 		</div>
 
-		<form method="POST" action="?/updateTournament" class="config-form">
+		<form method="POST" action="?/updateTournament" class="config-form" use:enhance={preserveScroll}>
 			<div class="config-grid">
 				<label>
 					<span>Tournament name</span>
@@ -220,7 +265,7 @@
 
 		<div class="section-list">
 			{#each data.tournament.sections as section}
-				<form method="POST" action="?/updateSection" class="section-editor">
+				<form method="POST" action="?/updateSection" class="section-editor" use:enhance={preserveScroll}>
 					<input type="hidden" name="sectionId" value={section.id} />
 					<div>
 						<h4>{section.name}</h4>
@@ -258,7 +303,12 @@
 			{/each}
 		</div>
 
-		<form method="POST" action="?/addSection" class="add-section">
+		<form
+			method="POST"
+			action="?/addSection"
+			class="add-section"
+			use:enhance={preserveScrollAndResetOnSuccess}
+		>
 			<h4>Add section</h4>
 			<input name="name" placeholder="Reserve" required />
 			<input name="minRating" inputmode="numeric" placeholder="Minimum rating" />
@@ -287,7 +337,7 @@
 						<strong>{playerName(registration)}</strong>
 						<span>{registration.seedRating ?? 'Unrated'}</span>
 					</div>
-					<form method="POST" action="?/requestBye" class="inline-form">
+					<form method="POST" action="?/requestBye" class="inline-form" use:enhance={preserveScroll}>
 						<input type="hidden" name="registrationId" value={registration.id} />
 						<input type="hidden" name="sectionId" value={registration.sectionId} />
 						<label>
@@ -304,7 +354,12 @@
 			{/each}
 		</div>
 
-		<form method="POST" action="?/addWalkIn" class="add-player">
+		<form
+			method="POST"
+			action="?/addWalkIn"
+			class="add-player"
+			use:enhance={preserveScrollAndResetOnSuccess}
+		>
 			<h4>Add player</h4>
 			<input name="firstName" placeholder="First name" required />
 			<input name="lastName" placeholder="Last name" required />
@@ -329,7 +384,7 @@
 
 			<div class="round-sections">
 				{#each currentRounds as round}
-					<form method="POST" action="?/saveResults" class="pairing-form">
+					<form method="POST" action="?/saveResults" class="pairing-form" use:enhance={preserveScroll}>
 						<div class="round-section-head">
 							<h4>{sectionName(round.sectionId)}</h4>
 						</div>
@@ -467,11 +522,18 @@
 		color: #f7f4ea;
 	}
 
-	button:disabled {
-		opacity: 0.45;
+	.actions a,
+	button:not(:disabled) {
+		cursor: pointer;
 	}
 
-	.actions a.secondary {
+	button:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	.actions a.secondary,
+	button.secondary {
 		background: #dbe5e2;
 		color: #1d3b39;
 	}

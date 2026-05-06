@@ -50,6 +50,15 @@
 		color: inherit;
 	}
 
+	:global(a[href]),
+	:global(button:not(:disabled)) {
+		cursor: pointer;
+	}
+
+	:global(button:disabled) {
+		cursor: not-allowed;
+	}
+
 	:global(*) {
 		box-sizing: border-box;
 	}
