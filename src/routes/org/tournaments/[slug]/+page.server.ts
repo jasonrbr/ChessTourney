@@ -2,11 +2,13 @@ import { error } from '@sveltejs/kit';
 import {
 	addSection,
 	addWalkIn,
+	approveRegistration,
 	closeRegistration,
 	completeTournament,
 	generateNextRound,
 	getTournamentBySlug,
 	publishTournament,
+	rejectRegistration,
 	reopenRegistration,
 	requestBye,
 	resumeTournament,
@@ -45,6 +47,8 @@ export const actions = {
 	complete: async ({ params }) => completeTournament(params.slug),
 	resume: async ({ params }) => resumeTournament(params.slug),
 	addWalkIn: async ({ params, request }) => addWalkIn(params.slug, await request.formData()),
+	approveRegistration: async ({ params, request }) => approveRegistration(params.slug, await request.formData()),
+	rejectRegistration: async ({ params, request }) => rejectRegistration(params.slug, await request.formData()),
 	requestBye: async ({ params, request }) => requestBye(params.slug, await request.formData()),
 	generateRound: async ({ params }) => generateNextRound(params.slug),
 	saveResults: async ({ request }) => saveResults(await request.formData())

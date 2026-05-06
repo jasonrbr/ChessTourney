@@ -54,6 +54,7 @@ Documentation should clearly distinguish:
 
 - Use git throughout implementation.
 - Make meaningful, reviewable commits.
+- After completing and verifying a requested code or documentation change, commit it immediately without waiting for an explicit follow-up request.
 - Keep commit messages clear and scoped.
 - Do not bundle unrelated work into a single commit.
 - Suggest a commit strategy before larger phases if that will help reviewability.

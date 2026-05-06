@@ -24,6 +24,15 @@
 		data.tournament.sections.find((section) => section.id === sectionId)?.name ?? 'Section';
 	const sectionRegistrationCount = (sectionId: string) =>
 		data.tournament.registrations.filter((registration) => registration.sectionId === sectionId).length;
+	const registrationNeedsEligibilityReview = (registration: {
+		seedRating: number | null;
+		eligibilityReviewStatus: string;
+		section?: { unratedPolicy: string };
+	}) =>
+		registration.eligibilityReviewStatus === 'PENDING' ||
+		(registration.eligibilityReviewStatus === 'NOT_REQUIRED' &&
+			registration.seedRating == null &&
+			registration.section?.unratedPolicy === 'TD_REVIEW');
 	const sectionEligibility = (section: {
 		minRating: number | null;
 		maxRating: number | null;
@@ -47,8 +56,16 @@
 	);
 	const nextRoundNumber = $derived(currentRoundNumber + 1);
 	const canGenerateRound = $derived(currentRoundNumber < data.tournament.totalRounds);
+	const reviewRegistrations = $derived(
+		data.tournament.registrations.filter(registrationNeedsEligibilityReview)
+	);
 	const registeredPlayers = $derived(
-		data.tournament.registrations.filter((registration) => registration.status === 'REGISTERED')
+		data.tournament.registrations.filter(
+			(registration) =>
+				registration.status === 'REGISTERED' &&
+				!registrationNeedsEligibilityReview(registration) &&
+				registration.eligibilityReviewStatus !== 'REJECTED'
+		)
 	);
 
 	function fillScore(pairingId: string, whiteScore: string, blackScore: string) {
@@ -107,7 +124,8 @@
 				<div><dt>Format</dt><dd>Double Round Swiss</dd></div>
 				<div><dt>Time control</dt><dd>{data.tournament.timeControl}</dd></div>
 				<div><dt>Rounds</dt><dd>{currentRoundNumber} / {data.tournament.totalRounds}</dd></div>
-				<div><dt>Players</dt><dd>{registeredPlayers.length}</dd></div>
+				<div><dt>Ready players</dt><dd>{registeredPlayers.length}</dd></div>
+				<div><dt>Review needed</dt><dd>{reviewRegistrations.length}</dd></div>
 				<div><dt>Pairing bye</dt><dd>{scoreLabel(data.tournament.pairingByeScore)} pts</dd></div>
 				<div><dt>Requested bye</dt><dd>{scoreLabel(data.tournament.requestedByeScore)} pts</dd></div>
 			</dl>
@@ -325,7 +343,42 @@
 	<section class="card">
 		<div class="section-head">
 			<div>
-				<h3>Roster</h3>
+				<h3>Registration review</h3>
+				<p>Unrated entries using TD review stay out of pairings until approved.</p>
+			</div>
+		</div>
+
+		{#if reviewRegistrations.length > 0}
+			<div class="review-list">
+				{#each reviewRegistrations as registration}
+					<div class="review-row">
+						<div>
+							<strong>{playerName(registration)}</strong>
+							<span>{sectionName(registration.sectionId)} · Unrated</span>
+							<small>{registration.eligibilityReviewReason ?? 'TD review required'}</small>
+						</div>
+						<div class="review-actions">
+							<form method="POST" action="?/approveRegistration" use:enhance={preserveScroll}>
+								<input type="hidden" name="registrationId" value={registration.id} />
+								<button>Approve</button>
+							</form>
+							<form method="POST" action="?/rejectRegistration" use:enhance={preserveScroll}>
+								<input type="hidden" name="registrationId" value={registration.id} />
+								<button class="secondary">Reject</button>
+							</form>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{:else}
+			<p class="empty-note">No registrations need review.</p>
+		{/if}
+	</section>
+
+	<section class="card">
+		<div class="section-head">
+			<div>
+				<h3>Active registrations</h3>
 				<p>Add late players and mark requested byes before generating a round.</p>
 			</div>
 		</div>
@@ -336,6 +389,7 @@
 					<div>
 						<strong>{playerName(registration)}</strong>
 						<span>{registration.seedRating ?? 'Unrated'}</span>
+						<small>{sectionName(registration.sectionId)}</small>
 					</div>
 					<form method="POST" action="?/requestBye" class="inline-form" use:enhance={preserveScroll}>
 						<input type="hidden" name="registrationId" value={registration.id} />
@@ -577,6 +631,7 @@
 	.roster,
 	.config-form,
 	.config-grid,
+	.review-list,
 	.section-list,
 	.section-fields,
 	.pairing-form,
@@ -587,6 +642,7 @@
 	}
 
 	.roster-row,
+	.review-row,
 	.section-editor,
 	.pairing,
 	.standing-row {
@@ -599,9 +655,35 @@
 	}
 
 	.roster-row span,
+	.review-row span,
 	.pairing p,
-	.standing-row small {
+	.standing-row small,
+	.empty-note {
 		color: #607177;
+	}
+
+	.roster-row small,
+	.review-row small {
+		color: #607177;
+	}
+
+	.empty-note {
+		margin: 0;
+	}
+
+	.review-row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.review-row > div:first-child {
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.review-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
 	}
 
 	.section-editor p {
@@ -733,6 +815,11 @@
 
 		.roster-row {
 			grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+			align-items: center;
+		}
+
+		.review-row {
+			grid-template-columns: minmax(0, 1fr) auto;
 			align-items: center;
 		}
 

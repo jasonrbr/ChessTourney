@@ -1,6 +1,7 @@
 export type PairingRegistration = {
 	id: string;
 	status: 'REGISTERED' | 'WITHDRAWN' | string;
+	eligibilityReviewStatus?: 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED' | string;
 	seedRating: number | null;
 	pointsUnits: number;
 };
@@ -45,7 +46,7 @@ export function planDoubleRoundSwissPairings({
 }) {
 	const requestedByeIds = new Set(requestedByes.map((bye) => bye.registrationId));
 	const sorted = registrations
-		.filter((registration) => registration.status === 'REGISTERED')
+		.filter(isPairingReadyRegistration)
 		.filter((registration) => !requestedByeIds.has(registration.id))
 		.sort(comparePairingOrder);
 	const previousOpponents = opponentMap(previousPairings);
@@ -93,6 +94,14 @@ export function planDoubleRoundSwissPairings({
 	}
 
 	return pairings;
+}
+
+function isPairingReadyRegistration(registration: PairingRegistration) {
+	return (
+		registration.status === 'REGISTERED' &&
+		registration.eligibilityReviewStatus !== 'PENDING' &&
+		registration.eligibilityReviewStatus !== 'REJECTED'
+	);
 }
 
 function comparePairingOrder(a: PairingRegistration, b: PairingRegistration) {

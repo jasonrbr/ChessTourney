@@ -117,6 +117,48 @@ function validateSectionEligibility(
 	return null;
 }
 
+function eligibilityReviewFromSection(
+	section: {
+		name: string;
+		unratedPolicy: string;
+	},
+	rating: number | null
+) {
+	if (rating == null && section.unratedPolicy === 'TD_REVIEW') {
+		return {
+			eligibilityReviewStatus: 'PENDING' as const,
+			eligibilityReviewReason: `Unrated player requires TD review for ${section.name}.`
+		};
+	}
+
+	return {
+		eligibilityReviewStatus: 'NOT_REQUIRED' as const,
+		eligibilityReviewReason: null
+	};
+}
+
+function registrationNeedsEligibilityReview(registration: {
+	seedRating: number | null;
+	eligibilityReviewStatus: string;
+	section?: { unratedPolicy: string };
+}) {
+	return (
+		registration.eligibilityReviewStatus === 'PENDING' ||
+		(registration.eligibilityReviewStatus === 'NOT_REQUIRED' &&
+			registration.seedRating == null &&
+			registration.section?.unratedPolicy === 'TD_REVIEW')
+	);
+}
+
+function registrationIsPairingReady(registration: {
+	status: string;
+	seedRating: number | null;
+	eligibilityReviewStatus: string;
+	section?: { unratedPolicy: string };
+}) {
+	return registration.status === 'REGISTERED' && !registrationNeedsEligibilityReview(registration);
+}
+
 export async function listTournaments() {
 	return prisma.tournament.findMany({
 		include: { sections: true, registrations: true },
@@ -165,7 +207,14 @@ export function playerName(player: { firstName: string; lastName: string }) {
 }
 
 export function standingsFor(tournament: TournamentDetail) {
-	return calculateStandings(tournament);
+	return calculateStandings({
+		...tournament,
+		registrations: tournament.registrations.filter(
+			(registration) =>
+				!registrationNeedsEligibilityReview(registration) &&
+				registration.eligibilityReviewStatus !== 'REJECTED'
+		)
+	});
 }
 
 export async function createTournament(form: FormData) {
@@ -340,6 +389,7 @@ export async function registerPlayer(slug: string, form: FormData) {
 
 	const eligibilityError = validateSectionEligibility(section, ratingValue);
 	if (eligibilityError) return eligibilityError;
+	const eligibilityReview = eligibilityReviewFromSection(section, ratingValue);
 
 	await prisma.$transaction(async (tx) => {
 		const player = await tx.player.create({
@@ -356,7 +406,8 @@ export async function registerPlayer(slug: string, form: FormData) {
 				tournamentId: tournament.id,
 				sectionId,
 				playerId: player.id,
-				seedRating: player.rating
+				seedRating: player.rating,
+				...eligibilityReview
 			}
 		});
 
@@ -454,6 +505,7 @@ export async function addWalkIn(slug: string, form: FormData) {
 
 	const eligibilityError = validateSectionEligibility(section, ratingValue);
 	if (eligibilityError) return eligibilityError;
+	const eligibilityReview = eligibilityReviewFromSection(section, ratingValue);
 
 	const player = await prisma.player.create({
 		data: {
@@ -468,7 +520,46 @@ export async function addWalkIn(slug: string, form: FormData) {
 			tournamentId: tournament.id,
 			sectionId,
 			playerId: player.id,
-			seedRating: player.rating
+			seedRating: player.rating,
+			...eligibilityReview
+		}
+	});
+}
+
+export async function approveRegistration(slug: string, form: FormData) {
+	const registrationId = textFromForm(form, 'registrationId');
+	if (!registrationId) return fail(400, { message: 'Choose a registration to approve.' });
+
+	const registration = await prisma.registration.findFirst({
+		where: { id: registrationId, tournament: { slug } }
+	});
+	if (!registration) return fail(404, { message: 'Registration not found.' });
+
+	await prisma.registration.update({
+		where: { id: registration.id },
+		data: {
+			status: 'REGISTERED',
+			eligibilityReviewStatus: 'APPROVED',
+			eligibilityReviewedAt: new Date()
+		}
+	});
+}
+
+export async function rejectRegistration(slug: string, form: FormData) {
+	const registrationId = textFromForm(form, 'registrationId');
+	if (!registrationId) return fail(400, { message: 'Choose a registration to reject.' });
+
+	const registration = await prisma.registration.findFirst({
+		where: { id: registrationId, tournament: { slug } }
+	});
+	if (!registration) return fail(404, { message: 'Registration not found.' });
+
+	await prisma.registration.update({
+		where: { id: registration.id },
+		data: {
+			status: 'WITHDRAWN',
+			eligibilityReviewStatus: 'REJECTED',
+			eligibilityReviewedAt: new Date()
 		}
 	});
 }
@@ -527,10 +618,11 @@ export async function generateNextRound(slug: string) {
 
 		const active = standings
 			.filter((row) => row.registration.sectionId === section.id)
-			.filter((row) => row.registration.status === 'REGISTERED')
+			.filter((row) => registrationIsPairingReady(row.registration))
 			.map((row) => ({
 				id: row.registration.id,
 				status: row.registration.status,
+				eligibilityReviewStatus: row.registration.eligibilityReviewStatus,
 				seedRating: row.registration.seedRating,
 				pointsUnits: row.pointsUnits
 			}));

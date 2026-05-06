@@ -5,10 +5,12 @@ const registration = (
 	id: string,
 	seedRating: number,
 	pointsUnits = 0,
-	status: PairingRegistration['status'] = 'REGISTERED'
+	status: PairingRegistration['status'] = 'REGISTERED',
+	eligibilityReviewStatus: PairingRegistration['eligibilityReviewStatus'] = 'NOT_REQUIRED'
 ): PairingRegistration => ({
 	id,
 	status,
+	eligibilityReviewStatus,
 	seedRating,
 	pointsUnits
 });
@@ -143,6 +145,28 @@ describe('Double Round Swiss pairing planner', () => {
 			registrations: [
 				registration('a', 1800),
 				registration('b', 1700, 0, 'WITHDRAWN'),
+				registration('c', 1600)
+			],
+			previousPairings: [],
+			requestedByes: [],
+			pairingByeScoreUnits: 4
+		});
+
+		expect(pairings).toEqual([
+			{
+				boardNumber: 1,
+				pairingType: 'GAME',
+				whiteFirstRegistrationId: 'a',
+				blackFirstRegistrationId: 'c'
+			}
+		]);
+	});
+
+	it('does not pair players who still need eligibility review', () => {
+		const pairings = planDoubleRoundSwissPairings({
+			registrations: [
+				registration('a', 1800),
+				registration('b', 1700, 0, 'REGISTERED', 'PENDING'),
 				registration('c', 1600)
 			],
 			previousPairings: [],

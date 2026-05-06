@@ -12,7 +12,8 @@ const players = [
 	['Sam', 'Ortiz', 1580],
 	['Nina', 'Patel', 1510],
 	['Owen', 'Brooks', 1450],
-	['Grace', 'Kim', 1395]
+	['Grace', 'Kim', 1395],
+	['Taylor', 'Morgan', null]
 ];
 
 function seedEmail(firstName, lastName) {
@@ -51,12 +52,13 @@ async function main() {
 		});
 
 		for (const [firstName, lastName, rating] of players) {
+			const ratingValue = rating == null ? null : Number(rating);
 			const player = await tx.player.create({
 				data: {
 					firstName: String(firstName),
 					lastName: String(lastName),
 					email: seedEmail(String(firstName), String(lastName)),
-					rating: Number(rating)
+					rating: ratingValue
 				}
 			});
 
@@ -65,7 +67,10 @@ async function main() {
 					tournamentId: tournament.id,
 					sectionId: section.id,
 					playerId: player.id,
-					seedRating: Number(rating)
+					seedRating: ratingValue,
+					eligibilityReviewStatus: ratingValue == null ? 'PENDING' : 'NOT_REQUIRED',
+					eligibilityReviewReason:
+						ratingValue == null ? `Unrated player requires TD review for ${section.name}.` : null
 				}
 			});
 		}

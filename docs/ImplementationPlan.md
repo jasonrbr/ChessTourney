@@ -23,6 +23,7 @@ Implemented in the current codebase:
 - public tournament listing, event detail, and guest registration
 - TD tournament workspace for creating, editing, publishing, and running tournaments
 - configurable tournament visibility/status, bye score defaults, multiple sections, and section eligibility
+- TD registration review for unrated players in sections configured for TD review
 - Double Round Swiss pairing generation per section
 - requested byes, odd-player pairing byes, combined two-game result entry, and standings
 - focused unit tests for scoring, standings, and pairing logic

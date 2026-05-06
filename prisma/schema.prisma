@@ -29,6 +29,13 @@ enum RegistrationStatus {
   WITHDRAWN
 }
 
+enum EligibilityReviewStatus {
+  NOT_REQUIRED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum PairingType {
   GAME
   BYE
@@ -52,27 +59,27 @@ enum UnratedPolicy {
 }
 
 model Tournament {
-  id                 String               @id @default(cuid())
-  slug               String               @unique
-  name               String
-  organizationName   String
-  location           String
-  startDate          DateTime
-  endDate            DateTime
-  visibility         TournamentVisibility @default(DRAFT)
-  status             TournamentStatus     @default(SETUP)
-  format             TournamentFormat     @default(DOUBLE_ROUND_SWISS)
-  timeControl        String               @default("5+0")
-  totalRounds        Int                  @default(4)
-  isRated            Boolean              @default(false)
-  affiliateName      String?
-  pairingByeScore    Int                  @default(4)
-  requestedByeScore  Int                  @default(2)
-  sections           Section[]
-  registrations      Registration[]
-  rounds             Round[]
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  id                String               @id @default(cuid())
+  slug              String               @unique
+  name              String
+  organizationName  String
+  location          String
+  startDate         DateTime
+  endDate           DateTime
+  visibility        TournamentVisibility @default(DRAFT)
+  status            TournamentStatus     @default(SETUP)
+  format            TournamentFormat     @default(DOUBLE_ROUND_SWISS)
+  timeControl       String               @default("5+0")
+  totalRounds       Int                  @default(4)
+  isRated           Boolean              @default(false)
+  affiliateName     String?
+  pairingByeScore   Int                  @default(4)
+  requestedByeScore Int                  @default(2)
+  sections          Section[]
+  registrations     Registration[]
+  rounds            Round[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 }
 
 model Section {
@@ -84,9 +91,9 @@ model Section {
   maxRating     Int?
   unratedPolicy UnratedPolicy  @default(TD_REVIEW)
   registrations Registration[]
-  rounds       Round[]
-  byeRequests  ByeRequest[]
-  createdAt    DateTime       @default(now())
+  rounds        Round[]
+  byeRequests   ByeRequest[]
+  createdAt     DateTime       @default(now())
 }
 
 model Player {
@@ -100,20 +107,23 @@ model Player {
 }
 
 model Registration {
-  id             String             @id @default(cuid())
-  tournamentId   String
-  tournament     Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  sectionId      String
-  section        Section            @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  playerId       String
-  player         Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  status         RegistrationStatus @default(REGISTERED)
-  seedRating     Int?
-  createdAt      DateTime           @default(now())
-  whitePairings  Pairing[]          @relation("WhiteFirst")
-  blackPairings  Pairing[]          @relation("BlackFirst")
-  byePairings    Pairing[]          @relation("ByePlayer")
-  byeRequests    ByeRequest[]
+  id                      String                  @id @default(cuid())
+  tournamentId            String
+  tournament              Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  sectionId               String
+  section                 Section                 @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  playerId                String
+  player                  Player                  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  status                  RegistrationStatus      @default(REGISTERED)
+  seedRating              Int?
+  eligibilityReviewStatus EligibilityReviewStatus @default(NOT_REQUIRED)
+  eligibilityReviewReason String?
+  eligibilityReviewedAt   DateTime?
+  createdAt               DateTime                @default(now())
+  whitePairings           Pairing[]               @relation("WhiteFirst")
+  blackPairings           Pairing[]               @relation("BlackFirst")
+  byePairings             Pairing[]               @relation("ByePlayer")
+  byeRequests             ByeRequest[]
 }
 
 model ByeRequest {
@@ -131,14 +141,14 @@ model ByeRequest {
 }
 
 model Round {
-  id           String      @id @default(cuid())
+  id           String     @id @default(cuid())
   tournamentId String
-  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   sectionId    String
-  section      Section     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section      Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   number       Int
   pairings     Pairing[]
-  createdAt    DateTime    @default(now())
+  createdAt    DateTime   @default(now())
   completedAt  DateTime?
 
   @@unique([sectionId, number])
