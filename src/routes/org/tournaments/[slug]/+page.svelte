@@ -75,6 +75,25 @@
 		if (black) black.value = blackScore;
 	}
 
+	function syncDefaultUnratedPolicy(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const select = input.form?.querySelector<HTMLSelectElement>('select[name="unratedPolicy"]');
+		if (!select || select.dataset.touched === 'true') return;
+
+		select.value = input.value.trim() ? 'TD_REVIEW' : 'ALLOWED';
+	}
+
+	function markUnratedPolicyTouched(event: Event) {
+		(event.currentTarget as HTMLSelectElement).dataset.touched = 'true';
+	}
+
+	function resetUnratedPolicyTouched(event: Event) {
+		const select = (event.currentTarget as HTMLFormElement).querySelector<HTMLSelectElement>(
+			'select[name="unratedPolicy"]'
+		);
+		delete select?.dataset.touched;
+	}
+
 	const preserveScroll: SubmitFunction = () => {
 		const scrollX = window.scrollX;
 		const scrollY = window.scrollY;
@@ -298,7 +317,12 @@
 
 						<label>
 							<span>Minimum rating</span>
-							<input name="minRating" inputmode="numeric" value={section.minRating ?? ''} />
+							<input
+								name="minRating"
+								inputmode="numeric"
+								value={section.minRating ?? ''}
+								oninput={syncDefaultUnratedPolicy}
+							/>
 						</label>
 
 						<label>
@@ -308,7 +332,7 @@
 
 						<label>
 							<span>Unrated players</span>
-							<select name="unratedPolicy">
+							<select name="unratedPolicy" onchange={markUnratedPolicyTouched}>
 								<option value="ALLOWED" selected={section.unratedPolicy === 'ALLOWED'}>Allowed</option>
 								<option value="TD_REVIEW" selected={section.unratedPolicy === 'TD_REVIEW'}>TD review</option>
 								<option value="BLOCKED" selected={section.unratedPolicy === 'BLOCKED'}>Not eligible</option>
@@ -325,13 +349,19 @@
 			method="POST"
 			action="?/addSection"
 			class="add-section"
+			onreset={resetUnratedPolicyTouched}
 			use:enhance={preserveScrollAndResetOnSuccess}
 		>
 			<h4>Add section</h4>
 			<input name="name" placeholder="Reserve" required />
-			<input name="minRating" inputmode="numeric" placeholder="Minimum rating" />
+			<input
+				name="minRating"
+				inputmode="numeric"
+				placeholder="Minimum rating"
+				oninput={syncDefaultUnratedPolicy}
+			/>
 			<input name="maxRating" inputmode="numeric" placeholder="Maximum rating" />
-			<select name="unratedPolicy">
+			<select name="unratedPolicy" onchange={markUnratedPolicyTouched}>
 				<option value="ALLOWED">Allowed</option>
 				<option value="TD_REVIEW">TD review</option>
 				<option value="BLOCKED">Not eligible</option>

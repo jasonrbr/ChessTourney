@@ -1,3 +1,17 @@
+<script lang="ts">
+	function syncDefaultUnratedPolicy(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const select = input.form?.querySelector<HTMLSelectElement>('select[name="unratedPolicy"]');
+		if (!select || select.dataset.touched === 'true') return;
+
+		select.value = input.value.trim() ? 'TD_REVIEW' : 'ALLOWED';
+	}
+
+	function markUnratedPolicyTouched(event: Event) {
+		(event.currentTarget as HTMLSelectElement).dataset.touched = 'true';
+	}
+</script>
+
 <svelte:head>
 	<title>Create Tournament | ChessTourney</title>
 </svelte:head>
@@ -42,7 +56,7 @@
 
 			<label>
 				<span>Minimum rating</span>
-				<input name="minRating" inputmode="numeric" placeholder="Optional" />
+				<input name="minRating" inputmode="numeric" placeholder="Optional" oninput={syncDefaultUnratedPolicy} />
 			</label>
 
 			<label>
@@ -52,7 +66,7 @@
 
 			<label>
 				<span>Unrated players</span>
-				<select name="unratedPolicy">
+				<select name="unratedPolicy" onchange={markUnratedPolicyTouched}>
 					<option value="ALLOWED">Allowed</option>
 					<option value="TD_REVIEW">TD review</option>
 					<option value="BLOCKED">Not eligible</option>
