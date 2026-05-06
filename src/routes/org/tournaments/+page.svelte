@@ -38,6 +38,9 @@
 					<h3><a href={`/org/tournaments/${tournament.slug}`}>{tournament.name}</a></h3>
 					<p>{tournament.organizationName} · {tournament.location}</p>
 				</div>
+				<a class="edit-link" href={`/org/tournaments/${tournament.slug}`} aria-label={`Edit ${tournament.name}`}>
+					Edit
+				</a>
 			</div>
 
 			<dl class="meta">
@@ -133,6 +136,14 @@
 		font-size: 1.25rem;
 	}
 
+	.title-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		align-items: start;
+		justify-content: space-between;
+	}
+
 	.title-row a {
 		color: #193235;
 		text-decoration: none;
@@ -141,6 +152,17 @@
 	.title-row p {
 		margin: 0.35rem 0 0;
 		color: #52646a;
+	}
+
+	.title-row .edit-link {
+		flex: 0 0 auto;
+		padding: 0.55rem 0.75rem;
+		border-radius: 0.5rem;
+		border: 1px solid #a6bbb5;
+		background: #f7fbf8;
+		color: #1d3b39;
+		font-size: 0.88rem;
+		font-weight: 800;
 	}
 
 	.meta {
