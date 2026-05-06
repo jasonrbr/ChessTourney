@@ -17,6 +17,11 @@
 	const currentRounds = $derived(
 		data.tournament.rounds.filter((round) => round.number === currentRoundNumber)
 	);
+	const publicRegistrations = $derived(
+		data.tournament.registrations.filter((registration) => registration.status === 'REGISTERED')
+	);
+	const registrationStatus = (registration: { eligibilityReviewStatus: string }) =>
+		registration.eligibilityReviewStatus === 'PENDING' ? 'Pending TD review' : 'Registered';
 </script>
 
 <svelte:head>
@@ -47,8 +52,21 @@
 				<div><dt>Format</dt><dd>Double Round Swiss</dd></div>
 				<div><dt>Time control</dt><dd>{data.tournament.timeControl}</dd></div>
 				<div><dt>Rounds</dt><dd>{data.tournament.totalRounds}</dd></div>
-				<div><dt>Players</dt><dd>{data.tournament.registrations.length}</dd></div>
+				<div><dt>Players</dt><dd>{publicRegistrations.length}</dd></div>
 			</dl>
+		</article>
+
+		<article class="card">
+			<h2>Registrations</h2>
+			<div class="rows">
+				{#each publicRegistrations as registration}
+					<div class="registration-row">
+						<strong>{playerName(registration)}</strong>
+						<span>{registrationStatus(registration)}</span>
+						<small>{sectionName(registration.sectionId)} · {registration.seedRating ?? 'Unrated'}</small>
+					</div>
+				{/each}
+			</div>
 		</article>
 
 		<article class="card">
@@ -159,6 +177,7 @@
 
 	dl div,
 	.row,
+	.registration-row,
 	.pairing {
 		display: grid;
 		gap: 0.4rem;
@@ -167,7 +186,8 @@
 	}
 
 	dl div,
-	.row {
+	.row,
+	.registration-row {
 		grid-template-columns: minmax(0, 1fr) auto;
 	}
 
@@ -177,7 +197,8 @@
 		font-weight: 900;
 	}
 
-	.row small {
+	.row small,
+	.registration-row small {
 		grid-column: 1 / -1;
 		color: #607177;
 	}
