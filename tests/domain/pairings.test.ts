@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planDoubleRoundSwissPairings, type PairingRegistration } from './pairings';
+import { planDoubleRoundSwissPairings, type PairingRegistration } from '$lib/domain/pairings';
 
 const registration = (
 	id: string,

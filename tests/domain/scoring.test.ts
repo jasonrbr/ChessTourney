@@ -4,7 +4,7 @@ import {
 	isCompleteDoubleRoundScore,
 	parseScoreUnits,
 	scoreLabel
-} from './scoring';
+} from '$lib/domain/scoring';
 
 describe('Double Round Swiss scoring', () => {
 	it('parses the score values a TD can enter for a two-game pairing', () => {

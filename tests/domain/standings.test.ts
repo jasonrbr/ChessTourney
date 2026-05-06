@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateStandings, type StandingPairing, type StandingRegistration } from './standings';
+import { calculateStandings, type StandingPairing, type StandingRegistration } from '$lib/domain/standings';
 
 const registration = (id: string, firstName: string, lastName: string, seedRating: number) => ({
 	id,
