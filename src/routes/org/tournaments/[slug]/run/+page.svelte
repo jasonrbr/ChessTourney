@@ -172,16 +172,18 @@
 						</div>
 						<input type="hidden" name="roundId" value={round.id} />
 
-						{#each round.pairings as pairing}
+						{#each round.pairings.slice().sort((a, b) => {
+								if (a.pairingType === 'BYE' && b.pairingType !== 'BYE') return 1;
+								if (a.pairingType !== 'BYE' && b.pairingType === 'BYE') return -1;
+								return a.boardNumber - b.boardNumber;
+							}) as pairing}
 							{#if pairing.pairingType === 'BYE' && pairing.byeRegistration}
 								<article class="pairing bye">
 									<div class="board">Board {pairing.boardNumber}</div>
-									<div>
+									<div class="player-info">
 										<strong>{playerName(pairing.byeRegistration)}</strong>
-										<p>
-											{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} ·
-											{scoreLabel(pairing.byeScoreUnits)} pts
-										</p>
+										<small>{pairing.byeRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.byeRegistration.id) ?? 0)} pts</small>
+										<small>{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} · +{scoreLabel(pairing.byeScoreUnits)} pts</small>
 									</div>
 								</article>
 							{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
