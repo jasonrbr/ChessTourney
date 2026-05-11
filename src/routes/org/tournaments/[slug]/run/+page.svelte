@@ -176,10 +176,9 @@
 								if (a.pairingType === 'BYE' && b.pairingType !== 'BYE') return 1;
 								if (a.pairingType !== 'BYE' && b.pairingType === 'BYE') return -1;
 								return a.boardNumber - b.boardNumber;
-							}) as pairing}
+							}) as pairing, pairingIndex}
 							{#if pairing.pairingType === 'BYE' && pairing.byeRegistration}
 								<article class="pairing bye">
-									<div class="board">Board {pairing.boardNumber}</div>
 									<div class="player-info">
 										<strong>{playerName(pairing.byeRegistration)}</strong>
 										<small>{pairing.byeRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.byeRegistration.id) ?? 0)} pts</small>
@@ -188,7 +187,7 @@
 								</article>
 							{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
 								<article class="pairing">
-									<div class="board">Board {pairing.boardNumber}</div>
+									<div class="board">Board {pairingIndex + 1}</div>
 									<input type="hidden" name="pairingId" value={pairing.id} />
 									<label class="player-score">
 										<span class="player-info">
