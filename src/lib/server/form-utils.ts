@@ -18,6 +18,10 @@ export function optionalIntFromForm(value: FormDataEntryValue | null) {
 	return Number.isInteger(number) ? number : null;
 }
 
+// Three distinct return values by design:
+//   null      — blank input (caller treats as "unrated / no rating provided")
+//   undefined — non-empty but invalid input (caller should return a validation error)
+//   number    — valid non-negative integer
 export function wholeNumberFromText(value: string) {
 	if (!value) return null;
 

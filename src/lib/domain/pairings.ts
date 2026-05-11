@@ -116,7 +116,8 @@ export function planDoubleRoundSwissPairings({
 		}
 	}
 
-	// Fallback for any remaining floaters (edge case when all score groups exhausted)
+	// Fallback for any remaining floaters (edge case when all score groups exhausted).
+	// bIdx === -1 means everyone is a repeat opponent; take index 0 as a last resort.
 	while (floaters.length >= 2) {
 		const a = floaters.shift()!;
 		const bIdx = floaters.findIndex((c) => !opponents.get(a.id)?.has(c.id));

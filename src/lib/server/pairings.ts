@@ -143,26 +143,32 @@ export async function saveResults(form: FormData) {
 
 	if (!roundId) return fail(400, { message: 'Round is required.' });
 
-	for (const pairingId of pairingIds) {
-		const whiteScore = parseScoreUnits(form.get(`whiteScore-${pairingId}`));
-		const blackScore = parseScoreUnits(form.get(`blackScore-${pairingId}`));
-		if (isBlankScorePair(whiteScore, blackScore)) continue;
-		if (!isCompleteDoubleRoundScore(whiteScore, blackScore)) {
+	const scores = new Map(
+		pairingIds.map((id) => [
+			id,
+			{
+				white: parseScoreUnits(form.get(`whiteScore-${id}`)),
+				black: parseScoreUnits(form.get(`blackScore-${id}`))
+			}
+		])
+	);
+
+	for (const { white, black } of scores.values()) {
+		if (isBlankScorePair(white, black)) continue;
+		if (!isCompleteDoubleRoundScore(white, black)) {
 			return fail(400, { message: 'Each completed pairing score must total 2 points.' });
 		}
 	}
 
 	await prisma.$transaction(async (tx) => {
-		for (const pairingId of pairingIds) {
-			const whiteScore = parseScoreUnits(form.get(`whiteScore-${pairingId}`));
-			const blackScore = parseScoreUnits(form.get(`blackScore-${pairingId}`));
-			if (!isCompleteDoubleRoundScore(whiteScore, blackScore)) continue;
+		for (const [pairingId, { white, black }] of scores) {
+			if (!isCompleteDoubleRoundScore(white, black)) continue;
 
 			await tx.pairing.update({
 				where: { id: pairingId },
 				data: {
-					whiteFirstScoreUnits: whiteScore,
-					blackFirstScoreUnits: blackScore,
+					whiteFirstScoreUnits: white,
+					blackFirstScoreUnits: black,
 					status: PairingStatus.COMPLETE
 				}
 			});
