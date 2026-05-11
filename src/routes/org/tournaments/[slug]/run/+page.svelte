@@ -185,7 +185,10 @@
 									<div class="board">Board {pairing.boardNumber}</div>
 									<input type="hidden" name="pairingId" value={pairing.id} />
 									<label class="player-score">
-										<span>{playerName(pairing.whiteFirstRegistration)}</span>
+										<span class="player-info">
+											<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
+											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.whiteFirstRegistration.pointsUnits)} pts</small>
+										</span>
 										<input
 											name={`whiteScore-${pairing.id}`}
 											inputmode="decimal"
@@ -200,7 +203,10 @@
 											value={scoreLabel(pairing.blackFirstScoreUnits)}
 											aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
 										/>
-										<span>{playerName(pairing.blackFirstRegistration)}</span>
+										<span class="player-info right">
+											<strong>{playerName(pairing.blackFirstRegistration)}</strong>
+											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.blackFirstRegistration.pointsUnits)} pts</small>
+										</span>
 									</label>
 									<div class="presets">
 										<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
@@ -562,6 +568,20 @@
 
 	.player-score.right {
 		grid-template-columns: 4.6rem minmax(0, 1fr);
+	}
+
+	.player-info {
+		display: grid;
+		gap: 0.15rem;
+	}
+
+	.player-info small {
+		color: #607177;
+		font-size: 0.8rem;
+	}
+
+	.player-info.right {
+		text-align: right;
 	}
 
 	.player-score input {
