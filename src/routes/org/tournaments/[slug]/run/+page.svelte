@@ -148,9 +148,11 @@
 						<button class="secondary">Resume tournament</button>
 					</form>
 				{/if}
-				<form method="POST" action="?/generateRound" use:enhance={preserveScroll}>
-					<button disabled={!canGenerateRound}>Generate round {nextRoundNumber}</button>
-				</form>
+				{#if canGenerateRound}
+					<form method="POST" action="?/generateRound" use:enhance={preserveScroll}>
+						<button>Generate round {nextRoundNumber}</button>
+					</form>
+				{/if}
 			</div>
 		</article>
 	</section>
@@ -275,7 +277,9 @@
 		<div class="section-head">
 			<div>
 				<h3>Active registrations</h3>
-				<p>Add late players and mark requested byes before generating a round.</p>
+				{#if canGenerateRound}
+					<p>Add late players and mark requested byes before generating a round.</p>
+				{/if}
 			</div>
 		</div>
 
@@ -287,19 +291,21 @@
 						<span>{registration.seedRating ?? 'Unrated'}</span>
 						<small>{sectionName(registration.sectionId)}</small>
 					</div>
-					<form method="POST" action="?/requestBye" class="inline-form" use:enhance={preserveScroll}>
-						<input type="hidden" name="registrationId" value={registration.id} />
-						<input type="hidden" name="sectionId" value={registration.sectionId} />
-						<label>
-							<span>Round</span>
-							<input name="roundNumber" type="number" min="1" value={nextRoundNumber} />
-						</label>
-						<label>
-							<span>Bye score</span>
-							<input name="score" inputmode="decimal" value={scoreLabel(data.tournament.requestedByeScore)} />
-						</label>
-						<button>Set bye</button>
-					</form>
+					{#if canGenerateRound}
+						<form method="POST" action="?/requestBye" class="inline-form" use:enhance={preserveScroll}>
+							<input type="hidden" name="registrationId" value={registration.id} />
+							<input type="hidden" name="sectionId" value={registration.sectionId} />
+							<label>
+								<span>Round</span>
+								<input name="roundNumber" type="number" min="1" value={nextRoundNumber} />
+							</label>
+							<label>
+								<span>Bye score</span>
+								<input name="score" inputmode="decimal" value={scoreLabel(data.tournament.requestedByeScore)} />
+							</label>
+							<button>Set bye</button>
+						</form>
+					{/if}
 				</div>
 			{/each}
 		</div>
