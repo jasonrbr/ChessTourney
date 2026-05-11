@@ -14,24 +14,27 @@ It is intentionally opinionated. The goal is to reduce ambiguity enough to begin
 
 ## Current Code State
 
-The repository now contains a runnable Prisma-backed test-run slice for a Blitz Double Round Swiss event. It intentionally skips user/auth setup for now so the tournament workflow can be tested quickly.
+The repository contains a runnable Prisma-backed test-run slice for a Blitz Double Round Swiss event. It intentionally skips user/auth setup for now so the tournament workflow can be tested quickly.
 
 Implemented in the current codebase:
 
 - local PostgreSQL setup with Docker Compose
 - Prisma schema and seed data for a Michigan-based sample event
 - public tournament listing, event detail, and guest registration
-- TD tournament workspace for creating, editing, publishing, and running tournaments
+- TD tournament workspace split into settings (`/org/tournaments/[slug]`) and run (`/org/tournaments/[slug]/run`) pages
 - configurable tournament visibility/status, bye score defaults, multiple sections, and section eligibility
 - TD registration review for unrated players in sections configured for TD review
 - pre-round section removal with bulk or per-player registration reassignment
-- Double Round Swiss pairing generation per section
+- Dutch variation Swiss pairing (score-group splitting with backtracking for repeat opponents) per section
 - requested byes, odd-player pairing byes, combined two-game result entry, and standings
 - focused unit tests for scoring, standings, and pairing logic
+- service layer split into `tournaments.ts`, `registrations.ts`, `pairings.ts`, `form-utils.ts`; eligibility consolidated into a discriminated-union `checkEligibility`
+- partial unique DB index preventing duplicate active registrations (see `prisma/custom-constraints.sql`)
 
 Still not implemented:
 
 - organization accounts, auth, sessions, MFA, and role permissions
+- tournament archiving
 - hosted deployment
 - payment state and hosted checkout
 - printing, export, reporting/submission, and local backup files
