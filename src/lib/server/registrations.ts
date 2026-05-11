@@ -80,6 +80,8 @@ export function registrationNeedsEligibilityReview(registration: {
 	section?: { unratedPolicy: UnratedPolicy };
 }) {
 	if (registration.eligibilityReviewStatus === EligibilityReviewStatus.PENDING) return true;
+	// Catches the case where an unrated player registered before the section policy was
+	// changed to TD_REVIEW — their status is still NOT_REQUIRED but they now need review.
 	return (
 		registration.eligibilityReviewStatus === EligibilityReviewStatus.NOT_REQUIRED &&
 		registration.seedRating == null &&

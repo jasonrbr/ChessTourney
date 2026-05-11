@@ -143,26 +143,32 @@ export async function saveResults(form: FormData) {
 
 	if (!roundId) return fail(400, { message: 'Round is required.' });
 
-	for (const pairingId of pairingIds) {
-		const whiteScore = parseScoreUnits(form.get(`whiteScore-${pairingId}`));
-		const blackScore = parseScoreUnits(form.get(`blackScore-${pairingId}`));
-		if (isBlankScorePair(whiteScore, blackScore)) continue;
-		if (!isCompleteDoubleRoundScore(whiteScore, blackScore)) {
+	const scores = new Map(
+		pairingIds.map((id) => [
+			id,
+			{
+				white: parseScoreUnits(form.get(`whiteScore-${id}`)),
+				black: parseScoreUnits(form.get(`blackScore-${id}`))
+			}
+		])
+	);
+
+	for (const { white, black } of scores.values()) {
+		if (isBlankScorePair(white, black)) continue;
+		if (!isCompleteDoubleRoundScore(white, black)) {
 			return fail(400, { message: 'Each completed pairing score must total 2 points.' });
 		}
 	}
 
 	await prisma.$transaction(async (tx) => {
-		for (const pairingId of pairingIds) {
-			const whiteScore = parseScoreUnits(form.get(`whiteScore-${pairingId}`));
-			const blackScore = parseScoreUnits(form.get(`blackScore-${pairingId}`));
-			if (!isCompleteDoubleRoundScore(whiteScore, blackScore)) continue;
+		for (const [pairingId, { white, black }] of scores) {
+			if (!isCompleteDoubleRoundScore(white, black)) continue;
 
 			await tx.pairing.update({
 				where: { id: pairingId },
 				data: {
-					whiteFirstScoreUnits: whiteScore,
-					blackFirstScoreUnits: blackScore,
+					whiteFirstScoreUnits: white,
+					blackFirstScoreUnits: black,
 					status: PairingStatus.COMPLETE
 				}
 			});
@@ -175,4 +181,23 @@ export async function saveResults(form: FormData) {
 			await tx.round.update({ where: { id: roundId }, data: { completedAt: new Date() } });
 		}
 	});
+
+	return { savedRoundId: roundId };
+}
+
+export async function regenerateCurrentRound(slug: string) {
+	const tournament = await prisma.tournament.findUnique({
+		where: { slug },
+		include: { rounds: { select: { number: true } } }
+	});
+	if (!tournament) return fail(404, { message: 'Tournament not found.' });
+
+	const currentRoundNumber = Math.max(0, ...tournament.rounds.map((r) => r.number));
+	if (currentRoundNumber === 0) return fail(400, { message: 'No round to regenerate.' });
+
+	await prisma.round.deleteMany({
+		where: { tournamentId: tournament.id, number: currentRoundNumber }
+	});
+
+	return generateNextRound(slug);
 }

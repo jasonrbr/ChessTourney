@@ -31,7 +31,11 @@
 				<div><dt>Time control</dt><dd>{tournament.timeControl}</dd></div>
 				<div><dt>Players</dt><dd>{tournament.registrations.length}</dd></div>
 			</dl>
-			<a class="button" href={`/tournaments/${tournament.slug}/register`}>Register</a>
+			{#if tournament.status === 'SETUP' || tournament.status === 'REGISTRATION_OPEN'}
+				<a class="button" href={`/tournaments/${tournament.slug}/register`}>Register</a>
+			{:else}
+				<a class="button secondary" href={`/tournaments/${tournament.slug}`}>View details</a>
+			{/if}
 		</article>
 	{/each}
 </section>
@@ -95,6 +99,12 @@
 		background: #1d3b39;
 		color: #f7f4ea;
 		font-weight: 800;
+	}
+
+	.button.secondary {
+		background: transparent;
+		color: #1d3b39;
+		border: 1.5px solid #1d3b39;
 	}
 
 	@media (min-width: 900px) {

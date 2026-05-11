@@ -98,26 +98,10 @@ export async function getTournamentWorkspace(slug: string) {
 	});
 }
 
+// Intentionally separate from getTournamentWorkspace so future access-control
+// or field differences (e.g. hiding staff-only data) can be added per caller.
 export async function getTournamentForPublic(slug: string) {
-	return prisma.tournament.findUnique({
-		where: { slug },
-		include: {
-			sections: { orderBy: { createdAt: 'asc' } },
-			registrations: {
-				include: { player: true, section: true },
-				orderBy: [{ player: { lastName: 'asc' } }, { player: { firstName: 'asc' } }]
-			},
-			rounds: {
-				include: {
-					pairings: {
-						include: fullPairingInclude,
-						orderBy: { boardNumber: 'asc' }
-					}
-				},
-				orderBy: { number: 'asc' }
-			}
-		}
-	});
+	return getTournamentWorkspace(slug);
 }
 
 export async function getTournamentForRegistration(slug: string) {

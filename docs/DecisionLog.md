@@ -1,5 +1,36 @@
 # ChessTourney Decision Log
 
+## 2026-05-11
+
+### Confirmed Decisions
+
+- The Dutch variation of the Swiss pairing system (score-group splitting) is the required pairing algorithm. Players are grouped by score, each group is split in half, and top[i] is paired with bottom[i]. Odd-sized groups float the lowest player down to the next score group. The previous greedy fold (which paired consecutive players regardless of score groups) is replaced.
+- Pairings backtrack within the split halves to avoid repeat opponents before falling back to carrying floaters forward. A full permutation search is acceptable given the small field sizes typical of club events.
+- Color assignment follows USCF Rule 29E. The player with the lower cumulative White/Black balance (more Blacks played) gets White. On equal balance, the player who played Black most recently gets White. If both have the same last color or neither has color history, the top-half player gets White as a final fallback.
+- Byes are displayed at the bottom of a round's pairing list and carry no board number. Game board numbers are assigned sequentially from 1, unaffected by any board numbers stored on bye records in the database.
+- The run page shows all rounds newest-first, not only the current round. Past rounds render in collapsed accordion panels by default; the current round starts open. A Complete or In Progress badge is visible in the panel header without expanding.
+- Results are fully read-only when tournament status is COMPLETE. Score inputs, preset buttons, and save actions are hidden.
+- TDs may correct scores in any past round at any time without affecting subsequent rounds' pairings. Saving corrected results is an isolated write to the affected pairing records only.
+- A "Regenerate pairings" action on the current round deletes only the latest round and immediately re-generates it, picking up any score corrections from earlier rounds. No other rounds are touched.
+- Pairing display shows each player's score going into that round (cumulative from all prior rounds), not their current total. This matches the standing the pairing algorithm used when the round was generated.
+- The generate-round button and per-player bye request forms are hidden (not just disabled) once all configured rounds have been generated.
+- The service layer is split into four focused modules — `tournaments.ts`, `registrations.ts`, `pairings.ts`, and `form-utils.ts` — rather than one monolithic `tournament-service.ts`. `tournament-service.ts` is kept as a re-export barrel for backward compatibility.
+- Section eligibility logic is consolidated into a single `checkEligibility(section, rating)` function returning a discriminated union (`HARD_BLOCKED | NEEDS_REVIEW | ELIGIBLE`). Derived DB write values come from `eligibilityDbFields`. Prior fragmented eligibility checks are removed.
+- Three targeted DB query functions replace the general-purpose `getTournamentBySlug`: `getTournamentWorkspace` (full include for TD), `getTournamentForPublic` (same include for public detail and standings), `getTournamentForRegistration` (sections only for registration form).
+- A partial unique index on `Registration(tournamentId, playerId) WHERE status = 'REGISTERED'` prevents two active registrations for the same player in the same tournament. It lives in `prisma/custom-constraints.sql` because the Prisma schema DSL does not support conditional indexes; it must be applied manually after `prisma db push` and incorporated into a migration when the project moves to `prisma migrate dev`.
+- The TD workspace is split into two pages: `/org/tournaments/[slug]` for settings (tournament fields, sections, publish/unpublish) and `/org/tournaments/[slug]/run` for operations (status controls, registration review, walk-ins, bye requests, round pairings, results, standings). This prevents cluttering the settings form with operational controls that do not belong there.
+- `DATABASE_URL` must be passed to Prisma via `$env/static/private` in `db.ts` rather than relying on `process.env`. Vite 8 does not inject `.env` variables into `process.env`; they are only available through SvelteKit's env modules.
+- The public tournament listing shows a Register button only when status is `SETUP` or `REGISTRATION_OPEN`. Completed and in-progress tournaments show a View Details link instead.
+- The public page link in the TD workspace is hidden when the tournament is still a draft. The public detail route returns 404 for unpublished tournaments by design.
+- Archiving tournaments from the TD workspace is a recognized gap but is deferred. No decision on archive representation or behavior has been made yet.
+
+### Still Open
+
+- Whether the next implementation slice should prioritize organization/auth/MFA or continue toward a hosted test-run event with export/audit/offline-readiness improvements.
+- How TD overrides for section eligibility should be represented in the database and audit log.
+- What minimal result export format is most useful for the first real tournament test.
+- How tournament archiving should work (hide from active list, prevent modification, etc.).
+
 ## 2026-05-02
 
 ### Confirmed Decisions
