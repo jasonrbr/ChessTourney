@@ -89,7 +89,9 @@
 			<p>{data.tournament.organizationName} · {data.tournament.location} · {formatDate(data.tournament.startDate)}</p>
 		</div>
 		<div class="actions">
-			<a href={`/tournaments/${data.tournament.slug}`}>Public page</a>
+			{#if data.tournament.visibility === 'PUBLISHED'}
+				<a href={`/tournaments/${data.tournament.slug}`}>Public page</a>
+			{/if}
 			<a class="secondary" href={`/org/tournaments/${data.tournament.slug}`}>Settings</a>
 			<a class="secondary" href="/org/tournaments">All tournaments</a>
 		</div>

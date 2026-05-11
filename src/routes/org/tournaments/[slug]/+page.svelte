@@ -104,7 +104,9 @@
 		</div>
 		<div class="actions">
 			<a href={`/org/tournaments/${data.tournament.slug}/run`}>Run tournament</a>
-			<a class="secondary" href={`/tournaments/${data.tournament.slug}`}>Public page</a>
+			{#if data.tournament.visibility === 'PUBLISHED'}
+				<a class="secondary" href={`/tournaments/${data.tournament.slug}`}>Public page</a>
+			{/if}
 			<a class="secondary" href="/org/tournaments">All tournaments</a>
 		</div>
 	</header>
