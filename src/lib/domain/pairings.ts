@@ -52,6 +52,7 @@ export function planDoubleRoundSwissPairings({
 
 	const opponents = opponentMap(previousPairings);
 	const colorBalance = colorBalanceMap(previousPairings);
+	const lastColor = lastColorMap(previousPairings);
 	const pairings: PlannedPairing[] = [];
 	let boardNumber = 1;
 
@@ -101,7 +102,7 @@ export function planDoubleRoundSwissPairings({
 
 		if (pairs !== null) {
 			for (const [a, b] of pairs) {
-				const [whiteId, blackId] = assignColors(a, b, colorBalance);
+				const [whiteId, blackId] = assignColors(a, b, colorBalance, lastColor);
 				pairings.push({
 					boardNumber: boardNumber++,
 					pairingType: 'GAME',
@@ -120,7 +121,7 @@ export function planDoubleRoundSwissPairings({
 		const a = floaters.shift()!;
 		const bIdx = floaters.findIndex((c) => !opponents.get(a.id)?.has(c.id));
 		const [b] = floaters.splice(bIdx >= 0 ? bIdx : 0, 1);
-		const [whiteId, blackId] = assignColors(a, b, colorBalance);
+		const [whiteId, blackId] = assignColors(a, b, colorBalance, lastColor);
 		pairings.push({
 			boardNumber: boardNumber++,
 			pairingType: 'GAME',
@@ -207,16 +208,39 @@ function colorBalanceMap(pairings: ExistingPairing[]): Map<string, number> {
 	return map;
 }
 
-// Assign White to whichever player has played fewer Whites (lower balance).
-// On equal balance the first argument (top-half player) gets White.
+// Returns the most recently played color for each player (pairings assumed chronological order).
+function lastColorMap(pairings: ExistingPairing[]): Map<string, 'white' | 'black'> {
+	const map = new Map<string, 'white' | 'black'>();
+	for (const pairing of pairings) {
+		if (!pairing.whiteFirstRegistrationId || !pairing.blackFirstRegistrationId) continue;
+		map.set(pairing.whiteFirstRegistrationId, 'white');
+		map.set(pairing.blackFirstRegistrationId, 'black');
+	}
+	return map;
+}
+
+// USCF Rule 29E color assignment:
+// 1. Player with lower whitesPlayed-blacksPlayed balance gets White.
+// 2. On equal balance, the player who played Black most recently gets White.
+// 3. If both have the same last color (or no history), top-half player (a) gets White.
 function assignColors(
 	a: PairingRegistration,
 	b: PairingRegistration,
-	colorBalance: Map<string, number>
+	colorBalance: Map<string, number>,
+	lastColor: Map<string, 'white' | 'black'>
 ): [string, string] {
 	const aBalance = colorBalance.get(a.id) ?? 0;
 	const bBalance = colorBalance.get(b.id) ?? 0;
-	return aBalance <= bBalance ? [a.id, b.id] : [b.id, a.id];
+	if (aBalance !== bBalance) {
+		return aBalance < bBalance ? [a.id, b.id] : [b.id, a.id];
+	}
+	const aLast = lastColor.get(a.id);
+	const bLast = lastColor.get(b.id);
+	if (aLast === 'black' && bLast !== 'black') return [a.id, b.id];
+	if (bLast === 'black' && aLast !== 'black') return [b.id, a.id];
+	if (aLast === 'white' && bLast !== 'white') return [b.id, a.id];
+	if (bLast === 'white' && aLast !== 'white') return [a.id, b.id];
+	return [a.id, b.id];
 }
 
 function hasPairingBye(registrationId: string, pairings: ExistingPairing[]) {

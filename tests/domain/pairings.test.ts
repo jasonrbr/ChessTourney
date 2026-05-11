@@ -252,6 +252,32 @@ describe('Double Round Swiss pairing planner', () => {
 		});
 	});
 
+	it('uses last-round color as tiebreaker when color balances are equal', () => {
+		// a and b each have balance=0 (1W + 1B), but a played Black last and b played White last.
+		// x1-x4 are dummy IDs used only to establish color history for a and b.
+		const pairings = planDoubleRoundSwissPairings({
+			registrations: [
+				registration('a', 1800, 4),
+				registration('b', 1700, 4),
+				registration('c', 1600, 4),
+				registration('d', 1500, 4)
+			],
+			previousPairings: [
+				{ whiteFirstRegistrationId: 'a', blackFirstRegistrationId: 'x1', byeRegistrationId: null, byeType: null },
+				{ whiteFirstRegistrationId: 'x2', blackFirstRegistrationId: 'b', byeRegistrationId: null, byeType: null },
+				{ whiteFirstRegistrationId: 'x3', blackFirstRegistrationId: 'a', byeRegistrationId: null, byeType: null },
+				{ whiteFirstRegistrationId: 'b', blackFirstRegistrationId: 'x4', byeRegistrationId: null, byeType: null }
+			],
+			requestedByes: [],
+			pairingByeScoreUnits: 4
+		});
+
+		// a: balance=0, last=black → due White → gets White vs c
+		// b: balance=0, last=white → due Black → d gets White vs b
+		expect(pairings[0]).toMatchObject({ pairingType: 'GAME', whiteFirstRegistrationId: 'a', blackFirstRegistrationId: 'c' });
+		expect(pairings[1]).toMatchObject({ pairingType: 'GAME', whiteFirstRegistrationId: 'd', blackFirstRegistrationId: 'b' });
+	});
+
 	it('does not pair withdrawn players', () => {
 		const pairings = planDoubleRoundSwissPairings({
 			registrations: [
