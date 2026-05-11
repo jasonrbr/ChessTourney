@@ -1,4 +1,4 @@
-import { listTournaments } from '$lib/server/tournament-service';
+import { listTournaments } from '$lib/server/tournaments';
 
 export async function load() {
 	return {

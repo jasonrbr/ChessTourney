@@ -1,29 +1,25 @@
 import { error } from '@sveltejs/kit';
 import {
 	addSection,
-	addWalkIn,
-	approveRegistration,
 	closeRegistration,
 	completeTournament,
-	generateNextRound,
-	getTournamentBySlug,
+	getTournamentWorkspace,
 	publishTournament,
-	rejectRegistration,
 	reopenRegistration,
 	removeSection,
-	requestBye,
 	resumeTournament,
 	returnToRegistrationClosed,
-	saveResults,
-	startTournament,
 	standingsFor,
+	startTournament,
 	unpublishTournament,
 	updateSection,
 	updateTournament
-} from '$lib/server/tournament-service';
+} from '$lib/server/tournaments';
+import { addWalkIn, approveRegistration, rejectRegistration } from '$lib/server/registrations';
+import { generateNextRound, requestBye, saveResults } from '$lib/server/pairings';
 
 export async function load({ params }) {
-	const tournament = await getTournamentBySlug(params.slug);
+	const tournament = await getTournamentWorkspace(params.slug);
 
 	if (!tournament) {
 		throw error(404, 'Tournament not found');
