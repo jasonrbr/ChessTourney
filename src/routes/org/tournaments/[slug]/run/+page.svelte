@@ -160,105 +160,114 @@
 
 	{#each allRoundNumbers as roundNum}
 		{@const roundsForNum = data.tournament.rounds.filter((r) => r.number === roundNum)}
-		<section class="card round-card">
-			<div class="section-head">
-				<div>
-					<h3>Round {roundNum}</h3>
-					<p>Left player has White in the first game.{#if canEditResults} Enter total score for both games.{/if}</p>
-				</div>
-				{#if canEditResults && roundNum === currentRoundNumber}
-					<form method="POST" action="?/regenerateCurrentRound" use:enhance={preserveScroll}>
-						<button class="secondary">Regenerate pairings</button>
-					</form>
+		{@const isCurrentRound = roundNum === currentRoundNumber}
+		<details class="card round-card" open={isCurrentRound}>
+			<summary class="round-summary">
+				<h3>Round {roundNum}</h3>
+				{#if roundsForNum.every((r) => r.completedAt)}
+					<span class="round-badge complete">Complete</span>
+				{:else if isCurrentRound}
+					<span class="round-badge active">In progress</span>
 				{/if}
-			</div>
+			</summary>
 
-			<div class="round-sections">
-				{#each roundsForNum as round}
-					<form method="POST" action="?/saveResults" class="pairing-form" use:enhance={preserveScroll}>
-						<div class="round-section-head">
-							<h4>{sectionName(round.sectionId)}</h4>
-						</div>
-						{#if canEditResults}
-							<input type="hidden" name="roundId" value={round.id} />
-						{/if}
+			<div class="round-body">
+				<div class="round-meta">
+					<p>Left player has White in the first game.{#if canEditResults} Enter total score for both games.{/if}</p>
+					{#if canEditResults && isCurrentRound}
+						<form method="POST" action="?/regenerateCurrentRound" use:enhance={preserveScroll}>
+							<button class="secondary">Regenerate pairings</button>
+						</form>
+					{/if}
+				</div>
 
-						{#each round.pairings.slice().sort((a, b) => {
-								if (a.pairingType === 'BYE' && b.pairingType !== 'BYE') return 1;
-								if (a.pairingType !== 'BYE' && b.pairingType === 'BYE') return -1;
-								return a.boardNumber - b.boardNumber;
-							}) as pairing, pairingIndex}
-							{#if pairing.pairingType === 'BYE' && pairing.byeRegistration}
-								<article class="pairing bye">
-									<div class="player-info">
-										<strong>{playerName(pairing.byeRegistration)}</strong>
-										<small>{pairing.byeRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.byeRegistration.id) ?? 0)} pts</small>
-										<small>{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} · +{scoreLabel(pairing.byeScoreUnits)} pts</small>
-									</div>
-								</article>
-							{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
-								<article class="pairing">
-									<div class="board">Board {pairingIndex + 1}</div>
-									{#if canEditResults}
-										<input type="hidden" name="pairingId" value={pairing.id} />
-									{/if}
-									<div class="player-score">
-										<span class="player-info">
-											<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
-											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
-										</span>
-										{#if canEditResults}
-											<input
-												name={`whiteScore-${pairing.id}`}
-												inputmode="decimal"
-												value={scoreLabel(pairing.whiteFirstScoreUnits)}
-												aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
-											/>
-										{:else}
-											<span class="score-display">{scoreLabel(pairing.whiteFirstScoreUnits) || '—'}</span>
-										{/if}
-									</div>
-									<div class="player-score right">
-										{#if canEditResults}
-											<input
-												name={`blackScore-${pairing.id}`}
-												inputmode="decimal"
-												value={scoreLabel(pairing.blackFirstScoreUnits)}
-												aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
-											/>
-										{:else}
-											<span class="score-display">{scoreLabel(pairing.blackFirstScoreUnits) || '—'}</span>
-										{/if}
-										<span class="player-info right">
-											<strong>{playerName(pairing.blackFirstRegistration)}</strong>
-											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
-										</span>
-									</div>
-									{#if canEditResults}
-										<div class="presets">
-											<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
-											<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
-											<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
-											<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
-											<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
-										</div>
-									{/if}
-								</article>
-							{/if}
-						{/each}
-
-						{#if canEditResults}
-							<div class="save-row">
-								<button class="save">Save {sectionName(round.sectionId)} results</button>
-								{#if form && 'savedRoundId' in form && form.savedRoundId === round.id}
-									<span class="saved-badge">Saved</span>
-								{/if}
+				<div class="round-sections">
+					{#each roundsForNum as round}
+						<form method="POST" action="?/saveResults" class="pairing-form" use:enhance={preserveScroll}>
+							<div class="round-section-head">
+								<h4>{sectionName(round.sectionId)}</h4>
 							</div>
-						{/if}
-					</form>
-				{/each}
+							{#if canEditResults}
+								<input type="hidden" name="roundId" value={round.id} />
+							{/if}
+
+							{#each round.pairings.slice().sort((a, b) => {
+									if (a.pairingType === 'BYE' && b.pairingType !== 'BYE') return 1;
+									if (a.pairingType !== 'BYE' && b.pairingType === 'BYE') return -1;
+									return a.boardNumber - b.boardNumber;
+								}) as pairing, pairingIndex}
+								{#if pairing.pairingType === 'BYE' && pairing.byeRegistration}
+									<article class="pairing bye">
+										<div class="player-info">
+											<strong>{playerName(pairing.byeRegistration)}</strong>
+											<small>{pairing.byeRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.byeRegistration.id) ?? 0)} pts</small>
+											<small>{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} · +{scoreLabel(pairing.byeScoreUnits)} pts</small>
+										</div>
+									</article>
+								{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
+									<article class="pairing">
+										<div class="board">Board {pairingIndex + 1}</div>
+										{#if canEditResults}
+											<input type="hidden" name="pairingId" value={pairing.id} />
+										{/if}
+										<div class="player-score">
+											<span class="player-info">
+												<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
+												<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
+											</span>
+											{#if canEditResults}
+												<input
+													name={`whiteScore-${pairing.id}`}
+													inputmode="decimal"
+													value={scoreLabel(pairing.whiteFirstScoreUnits)}
+													aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
+												/>
+											{:else}
+												<span class="score-display">{scoreLabel(pairing.whiteFirstScoreUnits) || '—'}</span>
+											{/if}
+										</div>
+										<div class="player-score right">
+											{#if canEditResults}
+												<input
+													name={`blackScore-${pairing.id}`}
+													inputmode="decimal"
+													value={scoreLabel(pairing.blackFirstScoreUnits)}
+													aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
+												/>
+											{:else}
+												<span class="score-display">{scoreLabel(pairing.blackFirstScoreUnits) || '—'}</span>
+											{/if}
+											<span class="player-info right">
+												<strong>{playerName(pairing.blackFirstRegistration)}</strong>
+												<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
+											</span>
+										</div>
+										{#if canEditResults}
+											<div class="presets">
+												<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
+												<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
+												<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
+												<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
+												<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
+											</div>
+										{/if}
+									</article>
+								{/if}
+							{/each}
+
+							{#if canEditResults}
+								<div class="save-row">
+									<button class="save">Save Round {roundNum} results</button>
+									{#if form && 'savedRoundId' in form && form.savedRoundId === round.id}
+										<span class="saved-badge">Saved</span>
+									{/if}
+								</div>
+							{/if}
+						</form>
+					{/each}
+				</div>
 			</div>
-		</section>
+		</details>
 	{/each}
 
 	<section class="card">
@@ -543,6 +552,62 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.55rem;
+	}
+
+	.round-card {
+		padding: 0;
+	}
+
+	.round-summary {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.1rem;
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+	}
+
+	.round-summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.round-summary h3 {
+		flex: 1;
+	}
+
+	.round-badge {
+		padding: 0.25rem 0.7rem;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 800;
+	}
+
+	.round-badge.complete {
+		background: #d4edda;
+		color: #1a5c30;
+	}
+
+	.round-badge.active {
+		background: #fff3cd;
+		color: #7d5a00;
+	}
+
+	.round-body {
+		padding: 0 1.1rem 1.1rem;
+	}
+
+	.round-meta {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.round-meta p {
+		margin: 0;
+		color: #54676d;
 	}
 
 	.round-section-head {
