@@ -32,11 +32,12 @@
 	);
 
 	const currentRoundNumber = $derived(data.tournament.rounds.at(-1)?.number ?? 0);
-	const currentRounds = $derived(
-		data.tournament.rounds.filter((round) => round.number === currentRoundNumber)
-	);
 	const nextRoundNumber = $derived(currentRoundNumber + 1);
 	const canGenerateRound = $derived(currentRoundNumber < data.tournament.totalRounds);
+	const canEditResults = $derived(data.tournament.status !== 'COMPLETE');
+	const allRoundNumbers = $derived(
+		[...new Set(data.tournament.rounds.map((r) => r.number))].sort((a, b) => b - a)
+	);
 	const reviewRegistrations = $derived(
 		data.tournament.registrations.filter(registrationNeedsEligibilityReview)
 	);
@@ -157,22 +158,31 @@
 		</article>
 	</section>
 
-	{#if currentRounds.length > 0}
+	{#each allRoundNumbers as roundNum}
+		{@const roundsForNum = data.tournament.rounds.filter((r) => r.number === roundNum)}
 		<section class="card round-card">
 			<div class="section-head">
 				<div>
-					<h3>Round {currentRoundNumber}</h3>
-					<p>Left player has White in the first game. Enter total score for both games.</p>
+					<h3>Round {roundNum}</h3>
+					<p>Left player has White in the first game.{#if canEditResults} Enter total score for both games.{/if}</p>
 				</div>
+				{#if canEditResults && roundNum < currentRoundNumber}
+					<form method="POST" action="?/deleteRoundsFrom" use:enhance={preserveScroll}>
+						<input type="hidden" name="fromRoundNumber" value={roundNum} />
+						<button class="secondary">Delete round {roundNum} onward</button>
+					</form>
+				{/if}
 			</div>
 
 			<div class="round-sections">
-				{#each currentRounds as round}
+				{#each roundsForNum as round}
 					<form method="POST" action="?/saveResults" class="pairing-form" use:enhance={preserveScroll}>
 						<div class="round-section-head">
 							<h4>{sectionName(round.sectionId)}</h4>
 						</div>
-						<input type="hidden" name="roundId" value={round.id} />
+						{#if canEditResults}
+							<input type="hidden" name="roundId" value={round.id} />
+						{/if}
 
 						{#each round.pairings.slice().sort((a, b) => {
 								if (a.pairingType === 'BYE' && b.pairingType !== 'BYE') return 1;
@@ -190,53 +200,67 @@
 							{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
 								<article class="pairing">
 									<div class="board">Board {pairingIndex + 1}</div>
-									<input type="hidden" name="pairingId" value={pairing.id} />
-									<label class="player-score">
+									{#if canEditResults}
+										<input type="hidden" name="pairingId" value={pairing.id} />
+									{/if}
+									<div class="player-score">
 										<span class="player-info">
 											<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
 											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
 										</span>
-										<input
-											name={`whiteScore-${pairing.id}`}
-											inputmode="decimal"
-											value={scoreLabel(pairing.whiteFirstScoreUnits)}
-											aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
-										/>
-									</label>
-									<label class="player-score right">
-										<input
-											name={`blackScore-${pairing.id}`}
-											inputmode="decimal"
-											value={scoreLabel(pairing.blackFirstScoreUnits)}
-											aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
-										/>
+										{#if canEditResults}
+											<input
+												name={`whiteScore-${pairing.id}`}
+												inputmode="decimal"
+												value={scoreLabel(pairing.whiteFirstScoreUnits)}
+												aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
+											/>
+										{:else}
+											<span class="score-display">{scoreLabel(pairing.whiteFirstScoreUnits) || '—'}</span>
+										{/if}
+									</div>
+									<div class="player-score right">
+										{#if canEditResults}
+											<input
+												name={`blackScore-${pairing.id}`}
+												inputmode="decimal"
+												value={scoreLabel(pairing.blackFirstScoreUnits)}
+												aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
+											/>
+										{:else}
+											<span class="score-display">{scoreLabel(pairing.blackFirstScoreUnits) || '—'}</span>
+										{/if}
 										<span class="player-info right">
 											<strong>{playerName(pairing.blackFirstRegistration)}</strong>
 											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
 										</span>
-									</label>
-									<div class="presets">
-										<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
 									</div>
+									{#if canEditResults}
+										<div class="presets">
+											<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
+											<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
+											<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
+											<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
+											<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
+										</div>
+									{/if}
 								</article>
 							{/if}
 						{/each}
 
-						<div class="save-row">
-							<button class="save">Save {sectionName(round.sectionId)} results</button>
-							{#if form && 'savedRoundId' in form && form.savedRoundId === round.id}
-								<span class="saved-badge">Saved</span>
-							{/if}
-						</div>
+						{#if canEditResults}
+							<div class="save-row">
+								<button class="save">Save {sectionName(round.sectionId)} results</button>
+								{#if form && 'savedRoundId' in form && form.savedRoundId === round.id}
+									<span class="saved-badge">Saved</span>
+								{/if}
+							</div>
+						{/if}
 					</form>
 				{/each}
 			</div>
 		</section>
-	{/if}
+	{/each}
 
 	<section class="card">
 		<div class="section-head">
@@ -493,7 +517,6 @@
 
 	.roster-row span,
 	.review-row span,
-	.pairing p,
 	.standing-row small,
 	.empty-note {
 		color: #607177;
@@ -573,12 +596,20 @@
 	}
 
 	.player-score {
+		display: grid;
 		grid-template-columns: minmax(0, 1fr) 4.6rem;
 		align-items: center;
 	}
 
 	.player-score.right {
 		grid-template-columns: 4.6rem minmax(0, 1fr);
+	}
+
+	.score-display {
+		text-align: center;
+		font-weight: 900;
+		font-size: 1.15rem;
+		color: #1d3537;
 	}
 
 	.player-info {

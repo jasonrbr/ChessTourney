@@ -10,7 +10,7 @@ import {
 	startTournament
 } from '$lib/server/tournaments';
 import { addWalkIn, approveRegistration, rejectRegistration } from '$lib/server/registrations';
-import { generateNextRound, requestBye, saveResults } from '$lib/server/pairings';
+import { deleteRoundsFrom, generateNextRound, requestBye, saveResults } from '$lib/server/pairings';
 
 export async function load({ params }) {
 	const tournament = await getTournamentWorkspace(params.slug);
@@ -39,5 +39,7 @@ export const actions = {
 		rejectRegistration(params.slug, await request.formData()),
 	requestBye: async ({ params, request }) => requestBye(params.slug, await request.formData()),
 	generateRound: async ({ params }) => generateNextRound(params.slug),
-	saveResults: async ({ request }) => saveResults(await request.formData())
+	saveResults: async ({ request }) => saveResults(await request.formData()),
+	deleteRoundsFrom: async ({ params, request }) =>
+		deleteRoundsFrom(params.slug, await request.formData())
 };
