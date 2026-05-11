@@ -1,14 +1,12 @@
 import { error } from '@sveltejs/kit';
-import {
-	getTournamentBySlug,
-	registerPlayer,
-	registrationIsOpen
-} from '$lib/server/tournament-service';
+import { TournamentVisibility } from '@prisma/client';
+import { getTournamentForRegistration, registrationIsOpen } from '$lib/server/tournaments';
+import { registerPlayer } from '$lib/server/registrations';
 
 export async function load({ params }) {
-	const tournament = await getTournamentBySlug(params.slug);
+	const tournament = await getTournamentForRegistration(params.slug);
 
-	if (!tournament || tournament.visibility !== 'PUBLISHED') {
+	if (!tournament || tournament.visibility !== TournamentVisibility.PUBLISHED) {
 		throw error(404, 'Tournament not found');
 	}
 

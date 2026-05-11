@@ -106,6 +106,8 @@ model Player {
   createdAt     DateTime       @default(now())
 }
 
+// NOTE: a partial unique index on (tournamentId, playerId) WHERE status='REGISTERED' is applied
+// via prisma/custom-constraints.sql — Prisma schema DSL does not support conditional indexes.
 model Registration {
   id                      String                  @id @default(cuid())
   tournamentId            String

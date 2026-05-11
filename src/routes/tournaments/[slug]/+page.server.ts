@@ -1,14 +1,15 @@
 import { error } from '@sveltejs/kit';
+import { TournamentVisibility } from '@prisma/client';
 import {
-	getTournamentBySlug,
+	getTournamentForPublic,
 	registrationIsOpen,
 	standingsFor
-} from '$lib/server/tournament-service';
+} from '$lib/server/tournaments';
 
 export async function load({ params, url }) {
-	const tournament = await getTournamentBySlug(params.slug);
+	const tournament = await getTournamentForPublic(params.slug);
 
-	if (!tournament || tournament.visibility !== 'PUBLISHED') {
+	if (!tournament || tournament.visibility !== TournamentVisibility.PUBLISHED) {
 		throw error(404, 'Tournament not found');
 	}
 
