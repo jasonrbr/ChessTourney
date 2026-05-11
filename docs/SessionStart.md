@@ -1,17 +1,5 @@
-Read docs/ProjectPlan.md, docs/ExecutionWorkflow.md, docs/ArchitectureOverview.md, docs/DomainModel.md, docs/DecisionLog.md, docs/ImplementationPlan.md, and docs/OfflineOperationsPlan.md first.
+Read docs/DecisionLog.md, docs/ImplementationPlan.md, docs/DomainModel.md, and docs/OfflineOperationsPlan.md.
 
-If shell, path, or editing behavior seems odd, also read docs/WorkspaceNotes.md before continuing.
+Summarize the current code state and recommended next steps from ImplementationPlan.md before writing any code.
 
-Summarize:
-- the current approved phase
-- the highest-priority confirmed decisions relevant to architecture
-- the main dependencies and blockers before coding
-- the open architecture questions from docs/DomainModel.md
-- the offline tournament-operations boundary from docs/OfflineOperationsPlan.md
-- the current code state from docs/ImplementationPlan.md
-
-Do not code until that summary is done.
-
-After the summary, continue with the currently approved implementation milestone unless the requested work conflicts with the plan.
-
-Current code note: the repo has a Prisma-backed Dutch-variation Double Round Swiss test-run slice with public registration, guest registration flow, and a split TD workspace (settings page + run page). The service layer is split into focused modules (tournaments, registrations, pairings, form-utils) with eligibility consolidated into a discriminated union. DATABASE_URL is loaded via $env/static/private. Pairing color assignment follows USCF Rule 29E (cumulative balance + last-round tiebreaker). The run page shows all rounds as collapsible accordions with historical score display, read-only mode when complete, score correction on past rounds, and current-round regeneration. User/auth/MFA, tournament archiving, payments, exports, printing, prize calculation, reporting, hosted deployment, and offline PWA support are still pending.
+If shell, path, or editor behavior seems odd, also read docs/WorkspaceNotes.md.
