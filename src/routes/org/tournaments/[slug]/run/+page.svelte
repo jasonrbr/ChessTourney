@@ -27,9 +27,29 @@
 			registration.seedRating == null &&
 			registration.section?.unratedPolicy === 'TD_REVIEW');
 
-	const scoreByRegistrationId = $derived(
-		new Map(data.standings.map((row) => [row.registration.id, row.pointsUnits]))
-	);
+	// For each round number, the score each player had going INTO that round
+	// (cumulative from all previous rounds — matches what the pairing algorithm used).
+	const scoreBeforeRound = $derived.by(() => {
+		const result = new Map<number, Map<string, number>>();
+		const running = new Map<string, number>();
+		const nums = [...new Set(data.tournament.rounds.map((r) => r.number))].sort((a, b) => a - b);
+		for (const num of nums) {
+			result.set(num, new Map(running));
+			for (const round of data.tournament.rounds.filter((r) => r.number === num)) {
+				for (const pairing of round.pairings) {
+					if (pairing.pairingType === 'GAME') {
+						if (pairing.whiteFirstRegistrationId && pairing.whiteFirstScoreUnits != null)
+							running.set(pairing.whiteFirstRegistrationId, (running.get(pairing.whiteFirstRegistrationId) ?? 0) + pairing.whiteFirstScoreUnits);
+						if (pairing.blackFirstRegistrationId && pairing.blackFirstScoreUnits != null)
+							running.set(pairing.blackFirstRegistrationId, (running.get(pairing.blackFirstRegistrationId) ?? 0) + pairing.blackFirstScoreUnits);
+					} else if (pairing.byeRegistrationId && pairing.byeScoreUnits != null) {
+						running.set(pairing.byeRegistrationId, (running.get(pairing.byeRegistrationId) ?? 0) + pairing.byeScoreUnits);
+					}
+				}
+			}
+		}
+		return result;
+	});
 
 	const currentRoundNumber = $derived(data.tournament.rounds.at(-1)?.number ?? 0);
 	const nextRoundNumber = $derived(currentRoundNumber + 1);
@@ -161,6 +181,7 @@
 	{#each allRoundNumbers as roundNum}
 		{@const roundsForNum = data.tournament.rounds.filter((r) => r.number === roundNum)}
 		{@const isCurrentRound = roundNum === currentRoundNumber}
+		{@const scoreAtRound = scoreBeforeRound.get(roundNum) ?? new Map<string, number>()}
 		<details class="card round-card" open={isCurrentRound}>
 			<summary class="round-summary">
 				<h3>Round {roundNum}</h3>
@@ -200,7 +221,7 @@
 									<article class="pairing bye">
 										<div class="player-info">
 											<strong>{playerName(pairing.byeRegistration)}</strong>
-											<small>{pairing.byeRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.byeRegistration.id) ?? 0)} pts</small>
+											<small>{pairing.byeRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(pairing.byeRegistration.id) ?? 0)} pts</small>
 											<small>{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} · +{scoreLabel(pairing.byeScoreUnits)} pts</small>
 										</div>
 									</article>
@@ -213,7 +234,7 @@
 										<div class="player-score">
 											<span class="player-info">
 												<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
-												<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
+												<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
 											</span>
 											{#if canEditResults}
 												<input
@@ -239,7 +260,7 @@
 											{/if}
 											<span class="player-info right">
 												<strong>{playerName(pairing.blackFirstRegistration)}</strong>
-												<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
+												<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
 											</span>
 										</div>
 										{#if canEditResults}
