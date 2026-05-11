@@ -179,16 +179,19 @@ export async function saveResults(form: FormData) {
 	return { savedRoundId: roundId };
 }
 
-export async function deleteRoundsFrom(slug: string, form: FormData) {
-	const fromRoundNumber = Number(form.get('fromRoundNumber') ?? '');
-	if (!Number.isFinite(fromRoundNumber) || fromRoundNumber < 1) {
-		return fail(400, { message: 'Invalid round number.' });
-	}
-
-	const tournament = await prisma.tournament.findUnique({ where: { slug } });
+export async function regenerateCurrentRound(slug: string) {
+	const tournament = await prisma.tournament.findUnique({
+		where: { slug },
+		include: { rounds: { select: { number: true } } }
+	});
 	if (!tournament) return fail(404, { message: 'Tournament not found.' });
 
+	const currentRoundNumber = Math.max(0, ...tournament.rounds.map((r) => r.number));
+	if (currentRoundNumber === 0) return fail(400, { message: 'No round to regenerate.' });
+
 	await prisma.round.deleteMany({
-		where: { tournamentId: tournament.id, number: { gte: fromRoundNumber } }
+		where: { tournamentId: tournament.id, number: currentRoundNumber }
 	});
+
+	return generateNextRound(slug);
 }

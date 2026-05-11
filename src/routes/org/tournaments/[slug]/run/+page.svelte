@@ -166,10 +166,9 @@
 					<h3>Round {roundNum}</h3>
 					<p>Left player has White in the first game.{#if canEditResults} Enter total score for both games.{/if}</p>
 				</div>
-				{#if canEditResults && roundNum < currentRoundNumber}
-					<form method="POST" action="?/deleteRoundsFrom" use:enhance={preserveScroll}>
-						<input type="hidden" name="fromRoundNumber" value={roundNum} />
-						<button class="secondary">Delete round {roundNum} onward</button>
+				{#if canEditResults && roundNum === currentRoundNumber}
+					<form method="POST" action="?/regenerateCurrentRound" use:enhance={preserveScroll}>
+						<button class="secondary">Regenerate pairings</button>
 					</form>
 				{/if}
 			</div>
