@@ -187,7 +187,7 @@
 									<label class="player-score">
 										<span class="player-info">
 											<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
-											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.whiteFirstRegistration.pointsUnits)} pts</small>
+											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.whiteFirstRegistration.pointsUnits ?? 0)} pts</small>
 										</span>
 										<input
 											name={`whiteScore-${pairing.id}`}
@@ -205,7 +205,7 @@
 										/>
 										<span class="player-info right">
 											<strong>{playerName(pairing.blackFirstRegistration)}</strong>
-											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.blackFirstRegistration.pointsUnits)} pts</small>
+											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.blackFirstRegistration.pointsUnits ?? 0)} pts</small>
 										</span>
 									</label>
 									<div class="presets">
