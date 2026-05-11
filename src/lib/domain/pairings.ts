@@ -51,6 +51,7 @@ export function planDoubleRoundSwissPairings({
 		.sort(comparePairingOrder);
 
 	const opponents = opponentMap(previousPairings);
+	const colorBalance = colorBalanceMap(previousPairings);
 	const pairings: PlannedPairing[] = [];
 	let boardNumber = 1;
 
@@ -99,12 +100,13 @@ export function planDoubleRoundSwissPairings({
 		const pairs = findValidPairing(top, bottom, opponents, 0, new Set());
 
 		if (pairs !== null) {
-			for (const [white, black] of pairs) {
+			for (const [a, b] of pairs) {
+				const [whiteId, blackId] = assignColors(a, b, colorBalance);
 				pairings.push({
 					boardNumber: boardNumber++,
 					pairingType: 'GAME',
-					whiteFirstRegistrationId: white.id,
-					blackFirstRegistrationId: black.id
+					whiteFirstRegistrationId: whiteId,
+					blackFirstRegistrationId: blackId
 				});
 			}
 		} else {
@@ -115,14 +117,15 @@ export function planDoubleRoundSwissPairings({
 
 	// Fallback for any remaining floaters (edge case when all score groups exhausted)
 	while (floaters.length >= 2) {
-		const white = floaters.shift()!;
-		const blackIdx = floaters.findIndex((c) => !opponents.get(white.id)?.has(c.id));
-		const [black] = floaters.splice(blackIdx >= 0 ? blackIdx : 0, 1);
+		const a = floaters.shift()!;
+		const bIdx = floaters.findIndex((c) => !opponents.get(a.id)?.has(c.id));
+		const [b] = floaters.splice(bIdx >= 0 ? bIdx : 0, 1);
+		const [whiteId, blackId] = assignColors(a, b, colorBalance);
 		pairings.push({
 			boardNumber: boardNumber++,
 			pairingType: 'GAME',
-			whiteFirstRegistrationId: white.id,
-			blackFirstRegistrationId: black.id
+			whiteFirstRegistrationId: whiteId,
+			blackFirstRegistrationId: blackId
 		});
 	}
 
@@ -191,6 +194,29 @@ function opponentMap(pairings: ExistingPairing[]) {
 	}
 
 	return map;
+}
+
+// Returns whitesPlayed - blacksPlayed for each player across previous game pairings.
+function colorBalanceMap(pairings: ExistingPairing[]): Map<string, number> {
+	const map = new Map<string, number>();
+	for (const pairing of pairings) {
+		if (!pairing.whiteFirstRegistrationId || !pairing.blackFirstRegistrationId) continue;
+		map.set(pairing.whiteFirstRegistrationId, (map.get(pairing.whiteFirstRegistrationId) ?? 0) + 1);
+		map.set(pairing.blackFirstRegistrationId, (map.get(pairing.blackFirstRegistrationId) ?? 0) - 1);
+	}
+	return map;
+}
+
+// Assign White to whichever player has played fewer Whites (lower balance).
+// On equal balance the first argument (top-half player) gets White.
+function assignColors(
+	a: PairingRegistration,
+	b: PairingRegistration,
+	colorBalance: Map<string, number>
+): [string, string] {
+	const aBalance = colorBalance.get(a.id) ?? 0;
+	const bBalance = colorBalance.get(b.id) ?? 0;
+	return aBalance <= bBalance ? [a.id, b.id] : [b.id, a.id];
 }
 
 function hasPairingBye(registrationId: string, pairings: ExistingPairing[]) {

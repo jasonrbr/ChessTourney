@@ -178,8 +178,11 @@ describe('Double Round Swiss pairing planner', () => {
 	});
 
 	it('avoids repeat opponents when another pairing is available', () => {
-		// All 4 at same score; a-b played before.
+		// All 4 at same score; a-b played before (a=white, b=black).
 		// Natural Dutch: top=[a,b], bottom=[c,d] → a vs c, b vs d (both valid, no repeats)
+		// Color balance: a=+1(white due black), b=-1(black due white), c=0, d=0
+		// a vs c: a.balance(+1) > c.balance(0) → c gets White
+		// b vs d: b.balance(-1) < d.balance(0) → b gets White
 		const pairings = planDoubleRoundSwissPairings({
 			registrations: [
 				registration('a', 1800, 4),
@@ -201,8 +204,8 @@ describe('Double Round Swiss pairing planner', () => {
 
 		expect(pairings[0]).toMatchObject({
 			pairingType: 'GAME',
-			whiteFirstRegistrationId: 'a',
-			blackFirstRegistrationId: 'c'
+			whiteFirstRegistrationId: 'c',
+			blackFirstRegistrationId: 'a'
 		});
 		expect(pairings[1]).toMatchObject({
 			pairingType: 'GAME',
@@ -212,9 +215,12 @@ describe('Double Round Swiss pairing planner', () => {
 	});
 
 	it('backtracking: swaps bottom-half opponents when natural pairing hits a repeat', () => {
-		// All 4 at same score; a-c played before.
+		// All 4 at same score; a-c played before (a=white, c=black).
 		// Natural Dutch: top=[a,b], bottom=[c,d] → a vs c (repeat! skip), try a vs d → ok
 		// Then b vs c → ok
+		// Color balance: a=+1, c=-1, b=0, d=0
+		// a vs d: a.balance(+1) > d.balance(0) → d gets White
+		// b vs c: b.balance(0) > c.balance(-1) → c gets White
 		const pairings = planDoubleRoundSwissPairings({
 			registrations: [
 				registration('a', 1800, 4),
@@ -236,13 +242,13 @@ describe('Double Round Swiss pairing planner', () => {
 
 		expect(pairings[0]).toMatchObject({
 			pairingType: 'GAME',
-			whiteFirstRegistrationId: 'a',
-			blackFirstRegistrationId: 'd'
+			whiteFirstRegistrationId: 'd',
+			blackFirstRegistrationId: 'a'
 		});
 		expect(pairings[1]).toMatchObject({
 			pairingType: 'GAME',
-			whiteFirstRegistrationId: 'b',
-			blackFirstRegistrationId: 'c'
+			whiteFirstRegistrationId: 'c',
+			blackFirstRegistrationId: 'b'
 		});
 	});
 
