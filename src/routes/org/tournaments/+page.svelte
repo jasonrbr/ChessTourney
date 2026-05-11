@@ -38,9 +38,12 @@
 					<h3><a href={`/org/tournaments/${tournament.slug}`}>{tournament.name}</a></h3>
 					<p>{tournament.organizationName} · {tournament.location}</p>
 				</div>
-				<a class="edit-link" href={`/org/tournaments/${tournament.slug}`} aria-label={`Edit ${tournament.name}`}>
-					Edit
-				</a>
+				<div class="card-actions">
+					{#if tournament.status !== 'SETUP'}
+						<a class="edit-link run-link" href={`/org/tournaments/${tournament.slug}/run`}>Run</a>
+					{/if}
+					<a class="edit-link" href={`/org/tournaments/${tournament.slug}`}>Settings</a>
+				</div>
 			</div>
 
 			<dl class="meta">
@@ -154,8 +157,13 @@
 		color: #52646a;
 	}
 
-	.title-row .edit-link {
+	.card-actions {
+		display: flex;
+		gap: 0.4rem;
 		flex: 0 0 auto;
+	}
+
+	.title-row .edit-link {
 		padding: 0.55rem 0.75rem;
 		border-radius: 0.5rem;
 		border: 1px solid #a6bbb5;
@@ -163,6 +171,12 @@
 		color: #1d3b39;
 		font-size: 0.88rem;
 		font-weight: 800;
+	}
+
+	.title-row .run-link {
+		background: #1d3b39;
+		color: #f7f4ea;
+		border-color: #1d3b39;
 	}
 
 	.meta {
