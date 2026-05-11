@@ -27,6 +27,10 @@
 			registration.seedRating == null &&
 			registration.section?.unratedPolicy === 'TD_REVIEW');
 
+	const scoreByRegistrationId = $derived(
+		new Map(data.standings.map((row) => [row.registration.id, row.pointsUnits]))
+	);
+
 	const currentRoundNumber = $derived(data.tournament.rounds.at(-1)?.number ?? 0);
 	const currentRounds = $derived(
 		data.tournament.rounds.filter((round) => round.number === currentRoundNumber)
@@ -187,7 +191,7 @@
 									<label class="player-score">
 										<span class="player-info">
 											<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
-											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.whiteFirstRegistration.pointsUnits ?? 0)} pts</small>
+											<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
 										</span>
 										<input
 											name={`whiteScore-${pairing.id}`}
@@ -205,7 +209,7 @@
 										/>
 										<span class="player-info right">
 											<strong>{playerName(pairing.blackFirstRegistration)}</strong>
-											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(pairing.blackFirstRegistration.pointsUnits ?? 0)} pts</small>
+											<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreByRegistrationId.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
 										</span>
 									</label>
 									<div class="presets">

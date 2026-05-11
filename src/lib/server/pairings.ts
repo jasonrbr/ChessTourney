@@ -153,51 +153,17 @@ export async function saveResults(form: FormData) {
 	}
 
 	await prisma.$transaction(async (tx) => {
-		const affectedRegistrationIds = new Set<string>();
-
 		for (const pairingId of pairingIds) {
 			const whiteScore = parseScoreUnits(form.get(`whiteScore-${pairingId}`));
 			const blackScore = parseScoreUnits(form.get(`blackScore-${pairingId}`));
 			if (!isCompleteDoubleRoundScore(whiteScore, blackScore)) continue;
 
-			const updated = await tx.pairing.update({
+			await tx.pairing.update({
 				where: { id: pairingId },
 				data: {
 					whiteFirstScoreUnits: whiteScore,
 					blackFirstScoreUnits: blackScore,
 					status: PairingStatus.COMPLETE
-				},
-				select: { whiteFirstRegistrationId: true, blackFirstRegistrationId: true }
-			});
-
-			if (updated.whiteFirstRegistrationId) affectedRegistrationIds.add(updated.whiteFirstRegistrationId);
-			if (updated.blackFirstRegistrationId) affectedRegistrationIds.add(updated.blackFirstRegistrationId);
-		}
-
-		// Sync Registration.pointsUnits from all completed pairings for each affected player.
-		for (const registrationId of affectedRegistrationIds) {
-			const [asWhite, asBlack, asBye] = await Promise.all([
-				tx.pairing.aggregate({
-					where: { whiteFirstRegistrationId: registrationId, status: PairingStatus.COMPLETE },
-					_sum: { whiteFirstScoreUnits: true }
-				}),
-				tx.pairing.aggregate({
-					where: { blackFirstRegistrationId: registrationId, status: PairingStatus.COMPLETE },
-					_sum: { blackFirstScoreUnits: true }
-				}),
-				tx.pairing.aggregate({
-					where: { byeRegistrationId: registrationId },
-					_sum: { byeScoreUnits: true }
-				})
-			]);
-
-			await tx.registration.update({
-				where: { id: registrationId },
-				data: {
-					pointsUnits:
-						(asWhite._sum.whiteFirstScoreUnits ?? 0) +
-						(asBlack._sum.blackFirstScoreUnits ?? 0) +
-						(asBye._sum.byeScoreUnits ?? 0)
 				}
 			});
 		}
