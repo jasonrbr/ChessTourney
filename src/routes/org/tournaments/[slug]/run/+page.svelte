@@ -151,6 +151,80 @@
 		</article>
 	</section>
 
+	{#if currentRounds.length > 0}
+		<section class="card round-card">
+			<div class="section-head">
+				<div>
+					<h3>Round {currentRoundNumber}</h3>
+					<p>Left player has White in the first game. Enter total score for both games.</p>
+				</div>
+			</div>
+
+			<div class="round-sections">
+				{#each currentRounds as round}
+					<form method="POST" action="?/saveResults" class="pairing-form" use:enhance={preserveScroll}>
+						<div class="round-section-head">
+							<h4>{sectionName(round.sectionId)}</h4>
+						</div>
+						<input type="hidden" name="roundId" value={round.id} />
+
+						{#each round.pairings as pairing}
+							{#if pairing.pairingType === 'BYE' && pairing.byeRegistration}
+								<article class="pairing bye">
+									<div class="board">Board {pairing.boardNumber}</div>
+									<div>
+										<strong>{playerName(pairing.byeRegistration)}</strong>
+										<p>
+											{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} ·
+											{scoreLabel(pairing.byeScoreUnits)} pts
+										</p>
+									</div>
+								</article>
+							{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
+								<article class="pairing">
+									<div class="board">Board {pairing.boardNumber}</div>
+									<input type="hidden" name="pairingId" value={pairing.id} />
+									<label class="player-score">
+										<span>{playerName(pairing.whiteFirstRegistration)}</span>
+										<input
+											name={`whiteScore-${pairing.id}`}
+											inputmode="decimal"
+											value={scoreLabel(pairing.whiteFirstScoreUnits)}
+											aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
+										/>
+									</label>
+									<label class="player-score right">
+										<input
+											name={`blackScore-${pairing.id}`}
+											inputmode="decimal"
+											value={scoreLabel(pairing.blackFirstScoreUnits)}
+											aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
+										/>
+										<span>{playerName(pairing.blackFirstRegistration)}</span>
+									</label>
+									<div class="presets">
+										<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
+										<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
+										<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
+										<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
+										<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
+									</div>
+								</article>
+							{/if}
+						{/each}
+
+						<div class="save-row">
+							<button class="save">Save {sectionName(round.sectionId)} results</button>
+							{#if form && 'savedRoundId' in form && form.savedRoundId === round.id}
+								<span class="saved-badge">Saved</span>
+							{/if}
+						</div>
+					</form>
+				{/each}
+			</div>
+		</section>
+	{/if}
+
 	<section class="card">
 		<div class="section-head">
 			<div>
@@ -237,75 +311,6 @@
 			<button>Add</button>
 		</form>
 	</section>
-
-	{#if currentRounds.length > 0}
-		<section class="card round-card">
-			<div class="section-head">
-				<div>
-					<h3>Round {currentRoundNumber}</h3>
-					<p>Left player has White in the first game. Enter total score for both games.</p>
-				</div>
-			</div>
-
-			<div class="round-sections">
-				{#each currentRounds as round}
-					<form method="POST" action="?/saveResults" class="pairing-form" use:enhance={preserveScroll}>
-						<div class="round-section-head">
-							<h4>{sectionName(round.sectionId)}</h4>
-						</div>
-						<input type="hidden" name="roundId" value={round.id} />
-
-						{#each round.pairings as pairing}
-							{#if pairing.pairingType === 'BYE' && pairing.byeRegistration}
-								<article class="pairing bye">
-									<div class="board">Board {pairing.boardNumber}</div>
-									<div>
-										<strong>{playerName(pairing.byeRegistration)}</strong>
-										<p>
-											{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} ·
-											{scoreLabel(pairing.byeScoreUnits)} pts
-										</p>
-									</div>
-								</article>
-							{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
-								<article class="pairing">
-									<div class="board">Board {pairing.boardNumber}</div>
-									<input type="hidden" name="pairingId" value={pairing.id} />
-									<label class="player-score">
-										<span>{playerName(pairing.whiteFirstRegistration)}</span>
-										<input
-											name={`whiteScore-${pairing.id}`}
-											inputmode="decimal"
-											value={scoreLabel(pairing.whiteFirstScoreUnits)}
-											aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
-										/>
-									</label>
-									<label class="player-score right">
-										<input
-											name={`blackScore-${pairing.id}`}
-											inputmode="decimal"
-											value={scoreLabel(pairing.blackFirstScoreUnits)}
-											aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
-										/>
-										<span>{playerName(pairing.blackFirstRegistration)}</span>
-									</label>
-									<div class="presets">
-										<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
-										<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
-									</div>
-								</article>
-							{/if}
-						{/each}
-
-						<button class="save">Save {sectionName(round.sectionId)} results</button>
-					</form>
-				{/each}
-			</div>
-		</section>
-	{/if}
 
 	<section class="card">
 		<h3>Standings</h3>
@@ -581,6 +586,21 @@
 
 	.bye {
 		background: #eef5f3;
+	}
+
+	.save-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.saved-badge {
+		padding: 0.35rem 0.75rem;
+		border-radius: 999px;
+		background: #d4edda;
+		color: #1a5c30;
+		font-size: 0.85rem;
+		font-weight: 800;
 	}
 
 	.save {

@@ -175,4 +175,6 @@ export async function saveResults(form: FormData) {
 			await tx.round.update({ where: { id: roundId }, data: { completedAt: new Date() } });
 		}
 	});
+
+	return { savedRoundId: roundId };
 }
