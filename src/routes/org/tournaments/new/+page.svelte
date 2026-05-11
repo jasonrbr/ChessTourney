@@ -1,4 +1,10 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import type { ActionData } from './$types';
+
+	let { form }: { form: ActionData } = $props();
+	const errorMessage = $derived(form && 'message' in form ? form.message : null);
+
 	function syncDefaultUnratedPolicy(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
 		const select = input.form?.querySelector<HTMLSelectElement>('select[name="unratedPolicy"]');
@@ -22,7 +28,11 @@
 		<p>Set up a Blitz Double Round Swiss event with public registration.</p>
 	</header>
 
-	<form class="form" method="POST">
+	{#if errorMessage}
+		<p class="form-error" role="alert">{errorMessage}</p>
+	{/if}
+
+	<form class="form" method="POST" use:enhance>
 		<div class="grid">
 			<label>
 				<span>Tournament name</span>
@@ -128,6 +138,15 @@
 	header p {
 		max-width: 68ch;
 		color: #52646a;
+	}
+
+	.form-error {
+		margin: 0;
+		padding: 0.9rem 1rem;
+		border-radius: 0.75rem;
+		background: #fff0ec;
+		color: #8a2f20;
+		font-weight: 800;
 	}
 
 	.form {
