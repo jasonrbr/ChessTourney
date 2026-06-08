@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { gameUnitsFor, type GameResultCode } from '$lib/domain/scoring';
 	import type { ActionData, PageData, SubmitFunction } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -32,18 +33,20 @@
 	const scoreBeforeRound = $derived.by(() => {
 		const result = new Map<number, Map<string, number>>();
 		const running = new Map<string, number>();
+		const add = (id: string, units: number) => running.set(id, (running.get(id) ?? 0) + units);
 		const nums = [...new Set(data.tournament.rounds.map((r) => r.number))].sort((a, b) => a - b);
 		for (const num of nums) {
 			result.set(num, new Map(running));
 			for (const round of data.tournament.rounds.filter((r) => r.number === num)) {
 				for (const pairing of round.pairings) {
 					if (pairing.pairingType === 'GAME') {
-						if (pairing.whiteFirstRegistrationId && pairing.whiteFirstScoreUnits != null)
-							running.set(pairing.whiteFirstRegistrationId, (running.get(pairing.whiteFirstRegistrationId) ?? 0) + pairing.whiteFirstScoreUnits);
-						if (pairing.blackFirstRegistrationId && pairing.blackFirstScoreUnits != null)
-							running.set(pairing.blackFirstRegistrationId, (running.get(pairing.blackFirstRegistrationId) ?? 0) + pairing.blackFirstScoreUnits);
+						for (const game of pairing.games) {
+							if (game.result == null) continue;
+							add(game.whiteRegistrationId, gameUnitsFor(game.result, 'white'));
+							add(game.blackRegistrationId, gameUnitsFor(game.result, 'black'));
+						}
 					} else if (pairing.byeRegistrationId && pairing.byeScoreUnits != null) {
-						running.set(pairing.byeRegistrationId, (running.get(pairing.byeRegistrationId) ?? 0) + pairing.byeScoreUnits);
+						add(pairing.byeRegistrationId, pairing.byeScoreUnits);
 					}
 				}
 			}
@@ -70,11 +73,47 @@
 		)
 	);
 
-	function fillScore(pairingId: string, whiteScore: string, blackScore: string) {
-		const white = document.querySelector<HTMLInputElement>(`input[name="whiteScore-${pairingId}"]`);
-		const black = document.querySelector<HTMLInputElement>(`input[name="blackScore-${pairingId}"]`);
-		if (white) white.value = whiteScore;
-		if (black) black.value = blackScore;
+	type GamePick = '' | GameResultCode;
+	type PairingGames = PageData['tournament']['rounds'][number]['pairings'][number]['games'];
+
+	// Session-only result selections, keyed by pairing id, that drive the live combined
+	// readout while the TD enters results. Falls back to the persisted result for any
+	// pairing the TD hasn't touched this session.
+	let livePicks = $state<Record<string, { g1: GamePick; g2: GamePick }>>({});
+
+	function savedPick(games: PairingGames): { g1: GamePick; g2: GamePick } {
+		return {
+			g1: (games.find((g) => g.gameNumber === 1)?.result ?? '') as GamePick,
+			g2: (games.find((g) => g.gameNumber === 2)?.result ?? '') as GamePick
+		};
+	}
+
+	function effectivePick(pairingId: string, games: PairingGames) {
+		return livePicks[pairingId] ?? savedPick(games);
+	}
+
+	function setPick(pairingId: string, games: PairingGames, key: 'g1' | 'g2', value: GamePick) {
+		livePicks[pairingId] = { ...effectivePick(pairingId, games), [key]: value };
+	}
+
+	// Combined units for the two players of a pairing across both games. Player A had
+	// White in game 1 (and Black in game 2); player B is the reverse.
+	function combinedUnits(pick: { g1: GamePick; g2: GamePick }): [number, number] | null {
+		if (pick.g1 === '' || pick.g2 === '') return null;
+		const aUnits = gameUnitsFor(pick.g1, 'white') + gameUnitsFor(pick.g2, 'black');
+		const bUnits = gameUnitsFor(pick.g1, 'black') + gameUnitsFor(pick.g2, 'white');
+		return [aUnits, bUnits];
+	}
+
+	type GameRegistration = { player: { firstName: string; lastName: string } };
+	function gameResultText(
+		result: GameResultCode | null,
+		white: GameRegistration,
+		black: GameRegistration
+	) {
+		if (result == null) return '—';
+		if (result === 'DRAW') return '½–½';
+		return `${playerName(result === 'WHITE_WIN' ? white : black)} won`;
 	}
 
 	const preserveScroll: SubmitFunction = () => {
@@ -117,7 +156,10 @@
 			{#if data.tournament.visibility === 'PUBLISHED'}
 				<a href={`/tournaments/${data.tournament.slug}`}>Public page</a>
 			{/if}
-			<a class="secondary" href={`/org/tournaments/${data.tournament.slug}`}>Settings</a>
+			{#if currentRoundNumber > 0}
+					<a class="secondary" href={`/org/tournaments/${data.tournament.slug}/run/report`}>Rating report</a>
+				{/if}
+				<a class="secondary" href={`/org/tournaments/${data.tournament.slug}`}>Settings</a>
 			<a class="secondary" href="/org/tournaments">All tournaments</a>
 		</div>
 	</header>
@@ -194,7 +236,7 @@
 
 			<div class="round-body">
 				<div class="round-meta">
-					<p>Left player has White in the first game.{#if canEditResults} Enter total score for both games.{/if}</p>
+					<p>Each pairing is two games; players swap colors for game 2.{#if canEditResults} Record the result of each game.{/if}</p>
 					{#if canEditResults && isCurrentRound}
 						<form method="POST" action="?/regenerateCurrentRound" use:enhance={preserveScroll}>
 							<button class="secondary">Regenerate pairings</button>
@@ -225,54 +267,63 @@
 											<small>{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} · +{scoreLabel(pairing.byeScoreUnits)} pts</small>
 										</div>
 									</article>
-								{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
-									<article class="pairing">
-										<div class="board">Board {pairingIndex + 1}</div>
-										{#if canEditResults}
-											<input type="hidden" name="pairingId" value={pairing.id} />
-										{/if}
-										<div class="player-score">
-											<span class="player-info">
-												<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
-												<small>{pairing.whiteFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(pairing.whiteFirstRegistration.id) ?? 0)} pts</small>
-											</span>
-											{#if canEditResults}
-												<input
-													name={`whiteScore-${pairing.id}`}
-													inputmode="decimal"
-													value={scoreLabel(pairing.whiteFirstScoreUnits)}
-													aria-label={`${playerName(pairing.whiteFirstRegistration)} score`}
-												/>
-											{:else}
-												<span class="score-display">{scoreLabel(pairing.whiteFirstScoreUnits) || '—'}</span>
-											{/if}
-										</div>
-										<div class="player-score right">
-											{#if canEditResults}
-												<input
-													name={`blackScore-${pairing.id}`}
-													inputmode="decimal"
-													value={scoreLabel(pairing.blackFirstScoreUnits)}
-													aria-label={`${playerName(pairing.blackFirstRegistration)} score`}
-												/>
-											{:else}
-												<span class="score-display">{scoreLabel(pairing.blackFirstScoreUnits) || '—'}</span>
-											{/if}
-											<span class="player-info right">
-												<strong>{playerName(pairing.blackFirstRegistration)}</strong>
-												<small>{pairing.blackFirstRegistration.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(pairing.blackFirstRegistration.id) ?? 0)} pts</small>
-											</span>
-										</div>
-										{#if canEditResults}
-											<div class="presets">
-												<button type="button" onclick={() => fillScore(pairing.id, '2', '0')}>2-0</button>
-												<button type="button" onclick={() => fillScore(pairing.id, '1.5', '0.5')}>1.5-.5</button>
-												<button type="button" onclick={() => fillScore(pairing.id, '1', '1')}>1-1</button>
-												<button type="button" onclick={() => fillScore(pairing.id, '0.5', '1.5')}>.5-1.5</button>
-												<button type="button" onclick={() => fillScore(pairing.id, '0', '2')}>0-2</button>
+								{:else if pairing.pairingType === 'GAME'}
+									{@const game1 = pairing.games.find((g) => g.gameNumber === 1)}
+									{@const game2 = pairing.games.find((g) => g.gameNumber === 2)}
+									{#if game1 && game2}
+										{@const playerA = game1.whiteRegistration}
+										{@const playerB = game1.blackRegistration}
+										{@const pick = effectivePick(pairing.id, pairing.games)}
+										{@const combined = combinedUnits(pick)}
+										<article class="pairing">
+											<div class="board">Board {pairingIndex + 1}</div>
+											<div class="matchup">
+												<span class="player-info">
+													<strong>{playerName(playerA)}</strong>
+													<small>{playerA.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(playerA.id) ?? 0)} pts</small>
+												</span>
+												<span class="versus">
+													{#if combined}
+														<strong>{scoreLabel(combined[0])} – {scoreLabel(combined[1])}</strong>
+													{:else}
+														vs
+													{/if}
+												</span>
+												<span class="player-info right">
+													<strong>{playerName(playerB)}</strong>
+													<small>{playerB.seedRating ?? 'Unrated'} · {scoreLabel(scoreAtRound.get(playerB.id) ?? 0)} pts</small>
+												</span>
 											</div>
-										{/if}
-									</article>
+
+											{#if canEditResults}
+												<input type="hidden" name="pairingId" value={pairing.id} />
+												{#each [{ n: 1, white: playerA, black: playerB, field: `game1-${pairing.id}`, key: 'g1' as const }, { n: 2, white: playerB, black: playerA, field: `game2-${pairing.id}`, key: 'g2' as const }] as g}
+													<fieldset class="game-row">
+														<legend>Game {g.n}: {playerName(g.white)} (White) vs {playerName(g.black)} (Black)</legend>
+														<div class="presets">
+															<label>
+																<input type="radio" name={g.field} value="WHITE_WIN" checked={pick[g.key] === 'WHITE_WIN'} onchange={() => setPick(pairing.id, pairing.games, g.key, 'WHITE_WIN')} />
+																<span>{playerName(g.white)} won</span>
+															</label>
+															<label>
+																<input type="radio" name={g.field} value="DRAW" checked={pick[g.key] === 'DRAW'} onchange={() => setPick(pairing.id, pairing.games, g.key, 'DRAW')} />
+																<span>½–½</span>
+															</label>
+															<label>
+																<input type="radio" name={g.field} value="BLACK_WIN" checked={pick[g.key] === 'BLACK_WIN'} onchange={() => setPick(pairing.id, pairing.games, g.key, 'BLACK_WIN')} />
+																<span>{playerName(g.black)} won</span>
+															</label>
+														</div>
+													</fieldset>
+												{/each}
+											{:else}
+												<div class="game-results">
+													<span>Game 1: {gameResultText(game1.result, playerA, playerB)}</span>
+													<span>Game 2: {gameResultText(game2.result, playerB, playerA)}</span>
+												</div>
+											{/if}
+										</article>
+									{/if}
 								{/if}
 							{/each}
 
@@ -680,21 +731,19 @@
 		color: #8f5d2f;
 	}
 
-	.player-score {
+	.matchup {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) 4.6rem;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 		align-items: center;
+		gap: 0.75rem;
 	}
 
-	.player-score.right {
-		grid-template-columns: 4.6rem minmax(0, 1fr);
-	}
-
-	.score-display {
+	.versus {
 		text-align: center;
 		font-weight: 900;
-		font-size: 1.15rem;
+		font-size: 1.1rem;
 		color: #1d3537;
+		white-space: nowrap;
 	}
 
 	.player-info {
@@ -711,24 +760,55 @@
 		text-align: right;
 	}
 
-	.player-score input {
-		text-align: center;
-		font-weight: 900;
-		font-size: 1.15rem;
+	.game-row {
+		border: 0;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	.game-row legend {
+		padding: 0;
+		font-size: 0.8rem;
+		color: #607177;
+	}
+
+	.game-results {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		font-weight: 600;
+		color: #1d3537;
 	}
 
 	.presets {
 		display: grid;
-		grid-template-columns: repeat(5, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 0.4rem;
 	}
 
-	.presets button {
-		padding: 0.55rem 0.25rem;
+	.presets label {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		padding: 0.5rem 0.4rem;
 		border-radius: 0.55rem;
 		background: #dbe5e2;
 		color: #1d3b39;
 		font-size: 0.85rem;
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.presets label:has(input:checked) {
+		background: #8f5d2f;
+		color: #fff;
+	}
+
+	.presets input {
+		accent-color: #8f5d2f;
 	}
 
 	.bye {
@@ -787,13 +867,5 @@
 			grid-column: 1 / -1;
 		}
 
-		.pairing {
-			grid-template-columns: 5rem minmax(0, 1fr) minmax(0, 1fr);
-			align-items: center;
-		}
-
-		.presets {
-			grid-column: 2 / -1;
-		}
 	}
 </style>

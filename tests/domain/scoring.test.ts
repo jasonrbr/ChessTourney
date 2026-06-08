@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-	isBlankScorePair,
-	isCompleteDoubleRoundScore,
-	parseScoreUnits,
-	scoreLabel
-} from '$lib/domain/scoring';
+import { gameUnitsFor, parseGameResult, parseScoreUnits, scoreLabel } from '$lib/domain/scoring';
 
 describe('Double Round Swiss scoring', () => {
-	it('parses the score values a TD can enter for a two-game pairing', () => {
+	it('parses the bye score values a TD can enter', () => {
 		expect(parseScoreUnits('0')).toBe(0);
 		expect(parseScoreUnits('0.5')).toBe(1);
 		expect(parseScoreUnits('.5')).toBe(1);
@@ -17,28 +12,29 @@ describe('Double Round Swiss scoring', () => {
 		expect(parseScoreUnits('2')).toBe(4);
 	});
 
-	it('rejects malformed or out-of-range scores', () => {
+	it('rejects malformed or out-of-range bye scores', () => {
 		expect(parseScoreUnits('')).toBeNull();
 		expect(parseScoreUnits('0.25')).toBeNull();
 		expect(parseScoreUnits('2.5')).toBeNull();
 		expect(parseScoreUnits('win')).toBeNull();
 	});
 
-	it('requires completed pairing scores to total two points', () => {
-		expect(isCompleteDoubleRoundScore(4, 0)).toBe(true);
-		expect(isCompleteDoubleRoundScore(3, 1)).toBe(true);
-		expect(isCompleteDoubleRoundScore(2, 2)).toBe(true);
-		expect(isCompleteDoubleRoundScore(1, 3)).toBe(true);
-		expect(isCompleteDoubleRoundScore(0, 4)).toBe(true);
-
-		expect(isCompleteDoubleRoundScore(4, 1)).toBe(false);
-		expect(isCompleteDoubleRoundScore(2, null)).toBe(false);
-		expect(isCompleteDoubleRoundScore(null, null)).toBe(false);
+	it('parses per-game result codes and rejects anything else', () => {
+		expect(parseGameResult('WHITE_WIN')).toBe('WHITE_WIN');
+		expect(parseGameResult('DRAW')).toBe('DRAW');
+		expect(parseGameResult('BLACK_WIN')).toBe('BLACK_WIN');
+		expect(parseGameResult('')).toBeNull();
+		expect(parseGameResult('white_win')).toBeNull();
+		expect(parseGameResult('1-0')).toBeNull();
 	});
 
-	it('distinguishes blank scores from invalid partial scores', () => {
-		expect(isBlankScorePair(null, null)).toBe(true);
-		expect(isBlankScorePair(2, null)).toBe(false);
+	it('awards game units from the winning side, half a point for a draw', () => {
+		expect(gameUnitsFor('WHITE_WIN', 'white')).toBe(2);
+		expect(gameUnitsFor('WHITE_WIN', 'black')).toBe(0);
+		expect(gameUnitsFor('BLACK_WIN', 'white')).toBe(0);
+		expect(gameUnitsFor('BLACK_WIN', 'black')).toBe(2);
+		expect(gameUnitsFor('DRAW', 'white')).toBe(1);
+		expect(gameUnitsFor('DRAW', 'black')).toBe(1);
 	});
 
 	it('formats score units for display', () => {

@@ -56,8 +56,13 @@ export function registrationIsOpen(tournament: { status: TournamentStatus }) {
 // --- Queries ---
 
 const fullPairingInclude = {
-	whiteFirstRegistration: { include: { player: true } },
-	blackFirstRegistration: { include: { player: true } },
+	games: {
+		include: {
+			whiteRegistration: { include: { player: true } },
+			blackRegistration: { include: { player: true } }
+		},
+		orderBy: { gameNumber: 'asc' }
+	},
 	byeRegistration: { include: { player: true } }
 } as const;
 
