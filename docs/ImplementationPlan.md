@@ -27,7 +27,7 @@ Implemented in the current codebase:
 - pre-round section removal with bulk or per-player registration reassignment
 - Dutch variation Swiss pairing (score-group splitting with backtracking for repeat opponents) per section
 - USCF Rule 29E color assignment: cumulative balance first, last-round color as tiebreaker
-- requested byes, odd-player pairing byes, combined two-game result entry, and standings
+- requested byes, odd-player pairing byes, per-game result entry (each game of the double round recorded separately via an explicit `Game` model), and standings
 - run page shows all rounds newest-first as collapsible accordions; current round open, past rounds collapsed with Complete/In Progress badges
 - score corrections to any past round without affecting other rounds' pairings
 - "Regenerate pairings" action that deletes and re-generates only the current round
@@ -38,6 +38,7 @@ Implemented in the current codebase:
 - focused unit tests for scoring, standings, and pairing logic
 - service layer split into `tournaments.ts`, `registrations.ts`, `pairings.ts`, `form-utils.ts`; eligibility consolidated into a discriminated-union `checkEligibility`
 - partial unique DB index preventing duplicate active registrations (see `prisma/custom-constraints.sql`)
+- per-section USCF-style rating-report crosstable with print-to-PDF (`/org/tournaments/[slug]/run/report`) to support manual US Chess online entry
 
 Still not implemented:
 
@@ -45,7 +46,7 @@ Still not implemented:
 - tournament archiving
 - hosted deployment
 - payment state and hosted checkout
-- printing, export, reporting/submission, and local backup files
+- automated file exports, federation reporting/submission, and local backup files (a print-to-PDF rating-report crosstable exists, but CSV/dBASE export and submission do not)
 - prize configuration and prize award calculation
 - PWA offline packet, local command queue, and sync/review flow
 
@@ -407,7 +408,7 @@ Completed in the current codebase:
 Recommended next implementation target:
 
 - add organization/auth/MFA foundations, or
-- continue the tournament test-run slice with exports/local backup and audit history before hosting a real trial event
+- continue the tournament test-run slice with audit history and local backup before hosting a real trial event (a print-to-PDF rating-report crosstable for manual US Chess entry already exists)
 
 Offline planning note:
 

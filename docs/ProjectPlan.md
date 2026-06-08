@@ -39,7 +39,7 @@ Current implementation status:
 - tournament creation/editing supports visibility/status, bye score defaults, multiple sections, and section eligibility
 - TD registration review is available for unrated players in sections configured for TD review
 - pre-round section removal supports bulk or per-player registration reassignment to remaining sections
-- Double Round Swiss pairings, requested byes, pairing byes, combined two-game score entry, and standings are implemented for the current test-run format
+- Double Round Swiss pairings, requested byes, pairing byes, per-game result entry (each game tracked separately), standings, and a print-to-PDF USCF-style rating-report crosstable are implemented for the current test-run format
 - unit tests cover the hard pairing, scoring, and standings logic
 - auth/session wiring, organization membership, payments, reporting/export, prize calculation, printing, and PWA offline support remain future implementation targets
 - PWA-based offline tournament operations are now an explicit planning constraint for event operations

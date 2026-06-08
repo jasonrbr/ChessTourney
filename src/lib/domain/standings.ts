@@ -1,3 +1,5 @@
+import { gameUnitsFor, type GameResultCode } from './scoring';
+
 export type StandingPlayer = {
 	firstName: string;
 	lastName: string;
@@ -9,12 +11,15 @@ export type StandingRegistration = {
 	player: StandingPlayer;
 };
 
+export type StandingGame = {
+	whiteRegistrationId: string;
+	blackRegistrationId: string;
+	result: GameResultCode | null;
+};
+
 export type StandingPairing = {
 	pairingType: 'GAME' | 'BYE';
-	whiteFirstRegistrationId: string | null;
-	blackFirstRegistrationId: string | null;
-	whiteFirstScoreUnits: number | null;
-	blackFirstScoreUnits: number | null;
+	games?: StandingGame[];
 	byeRegistrationId: string | null;
 	byeScoreUnits: number | null;
 };
@@ -48,37 +53,29 @@ export function calculateStandings<TRegistration extends StandingRegistration>(
 				if (row && pairing.byeScoreUnits != null) {
 					row.pointsUnits += pairing.byeScoreUnits;
 				}
+				continue;
 			}
 
-			if (pairing.pairingType === 'GAME') {
-				const whiteRow = pairing.whiteFirstRegistrationId
-					? byRegistration.get(pairing.whiteFirstRegistrationId)
-					: null;
-				const blackRow = pairing.blackFirstRegistrationId
-					? byRegistration.get(pairing.blackFirstRegistrationId)
-					: null;
+			for (const game of pairing.games ?? []) {
+				if (game.result == null) continue;
+				const whiteRow = byRegistration.get(game.whiteRegistrationId);
+				const blackRow = byRegistration.get(game.blackRegistrationId);
+				if (!whiteRow || !blackRow) continue;
 
-				if (
-					whiteRow &&
-					blackRow &&
-					pairing.whiteFirstScoreUnits != null &&
-					pairing.blackFirstScoreUnits != null
-				) {
-					whiteRow.pointsUnits += pairing.whiteFirstScoreUnits;
-					blackRow.pointsUnits += pairing.blackFirstScoreUnits;
-					whiteRow.games += 2;
-					blackRow.games += 2;
+				whiteRow.pointsUnits += gameUnitsFor(game.result, 'white');
+				blackRow.pointsUnits += gameUnitsFor(game.result, 'black');
+				whiteRow.games += 1;
+				blackRow.games += 1;
 
-					if (pairing.whiteFirstScoreUnits > pairing.blackFirstScoreUnits) {
-						whiteRow.wins += 1;
-						blackRow.losses += 1;
-					} else if (pairing.whiteFirstScoreUnits < pairing.blackFirstScoreUnits) {
-						blackRow.wins += 1;
-						whiteRow.losses += 1;
-					} else {
-						whiteRow.draws += 1;
-						blackRow.draws += 1;
-					}
+				if (game.result === 'WHITE_WIN') {
+					whiteRow.wins += 1;
+					blackRow.losses += 1;
+				} else if (game.result === 'BLACK_WIN') {
+					blackRow.wins += 1;
+					whiteRow.losses += 1;
+				} else {
+					whiteRow.draws += 1;
+					blackRow.draws += 1;
 				}
 			}
 		}

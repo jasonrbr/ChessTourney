@@ -97,13 +97,16 @@
 								<strong>{playerName(pairing.byeRegistration)}</strong>
 								<span>{pairing.byeType === 'REQUESTED' ? 'Requested bye' : 'Pairing bye'} · {scoreLabel(pairing.byeScoreUnits)} pts</span>
 							</div>
-						{:else if pairing.whiteFirstRegistration && pairing.blackFirstRegistration}
-							<div class="pairing">
-								<span>Board {pairing.boardNumber}</span>
-								<strong>{playerName(pairing.whiteFirstRegistration)}</strong>
-								<span>White first vs</span>
-								<strong>{playerName(pairing.blackFirstRegistration)}</strong>
-							</div>
+						{:else if pairing.pairingType === 'GAME'}
+							{@const game1 = pairing.games.find((g) => g.gameNumber === 1)}
+							{#if game1}
+								<div class="pairing">
+									<span>Board {pairing.boardNumber}</span>
+									<strong>{playerName(game1.whiteRegistration)}</strong>
+									<span>White first vs</span>
+									<strong>{playerName(game1.blackRegistration)}</strong>
+								</div>
+							{/if}
 						{/if}
 					{/each}
 				{/each}

@@ -32,7 +32,7 @@ Current implementation goals:
 - establish the SvelteKit application shell
 - build organization-side tournament list/create/detail/run flows
 - support public tournament listing and registration
-- support Double Round Swiss pairings and combined two-game score entry
+- support Double Round Swiss pairings and per-game result entry (each game of the double round recorded separately)
 - preserve the future boundaries for publication, registration, and payments
 - preserve the future boundary for offline event operations
 - use Prisma-backed tournament data

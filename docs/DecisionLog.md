@@ -1,5 +1,18 @@
 # ChessTourney Decision Log
 
+## 2026-06-08
+
+### Confirmed Decisions
+
+- Individual game results are now tracked per game. This supersedes the 2026-05-02 decision that "individual game results are not tracked in the current UI." Each two-game double-round pairing is modeled as two `Game` rows.
+- A `Game` model is the source of truth for per-game color and result. Each `Game` stores `gameNumber` (1 or 2), an explicit `whiteRegistrationId` and `blackRegistrationId`, and a nullable `result` (`WHITE_WIN | DRAW | BLACK_WIN`). Game 1 uses the pairing's planned colors; game 2 swaps them. This replaces the previous `Pairing.whiteFirstRegistrationId/blackFirstRegistrationId/whiteFirstScoreUnits/blackFirstScoreUnits` columns, which encoded a combined two-game score from the "white-first" player's perspective and required mental color inversion.
+- Color belongs to `Game`, not `Pairing`. A GAME `Pairing` now owns two `Game` rows and keeps only board/type/status and bye fields. Bye pairings still use the `Pairing` bye fields and have no games.
+- The Swiss pairing planner (`domain/pairings.ts`) is unchanged. It still reasons in terms of game-1 colors; the server projects each existing pairing's game 1 onto the planner's white-first/black-first shape, and persists planned colors as two `Game` rows. Rule 29E color history and repeat-opponent detection therefore continue to use game-1 color.
+- Standings now tally wins/draws/losses per game. A split double round (one win + one loss) is recorded as 1 win and 1 loss for each player, not as a draw — fixing a latent bug in the previous combined-score derivation.
+- Result entry records each game's outcome via per-game result controls (one win / draw / other win) with a live combined readout, rather than a single combined score input. The same control is reused for current-round entry, past-round corrections, and the read-only COMPLETE view.
+- US Chess tournament submission is treated as manual online entry for now (the TD/Affiliate online form), not automated file upload. The accepted software-upload format is the three dBASE files (`THEXPORT/TSEXPORT/TDEXPORT.DBF`); no open third-party field spec is published, so generating them is deferred. CSV and FIDE "TRF" exports were rejected as not useful for US Chess submission.
+- To support manual entry, a read-only USCF-style rating report (numbered crosstable, one row per player, per-round games with result + opponent number, players ranked by final standing) is available per section at `/org/tournaments/[slug]/run/report`, with a print-to-PDF button (browser "Save as PDF") and a print stylesheet. No server-side PDF generation.
+
 ## 2026-05-11
 
 ### Confirmed Decisions

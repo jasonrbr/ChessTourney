@@ -319,7 +319,7 @@ Likely relationships:
 
 - belongs to one round
 - references one or more registrations, players, or teams depending on event type
-- has zero or one result record
+- has one or more games (one per game played between the competitors)
 
 Likely key attributes:
 
@@ -327,6 +327,35 @@ Likely key attributes:
 - pairing status
 - posted state
 - revision metadata
+
+Implementation note:
+
+In the current Double Round Swiss code, a GAME pairing owns two `Game` rows (one per game of the double round) and a BYE pairing owns none; per-game color and result live on `Game` rather than on the pairing itself.
+
+#### Game
+
+Represents a single game played within a pairing.
+
+Key responsibilities:
+
+- record the two competitors and which color each held for this specific game
+- hold the per-game result
+
+Likely relationships:
+
+- belongs to one pairing
+- references the competitor playing White and the competitor playing Black for this game
+
+Likely key attributes:
+
+- game number within the pairing
+- White competitor reference
+- Black competitor reference
+- result (White win / draw / Black win), nullable until entered
+
+Design note:
+
+Making color and result explicit per game (rather than storing a combined per-pairing score) keeps multi-game formats like the double round accurate for standings and federation reporting, and avoids encoding results from one player's perspective.
 
 #### Result
 
@@ -349,6 +378,10 @@ Likely key attributes:
 - entered by
 - entered at
 - correction note or reason when applicable
+
+Implementation note:
+
+The current code does not yet have a standalone `Result` entity. Per-game outcomes are stored directly on `Game` (see above); a dedicated result/correction-history record may be introduced later when audit history is implemented.
 
 #### AvailabilityAction
 

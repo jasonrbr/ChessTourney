@@ -52,6 +52,12 @@ enum PairingStatus {
   COMPLETE
 }
 
+enum GameResult {
+  WHITE_WIN
+  DRAW
+  BLACK_WIN
+}
+
 enum UnratedPolicy {
   ALLOWED
   BLOCKED
@@ -122,8 +128,8 @@ model Registration {
   eligibilityReviewReason String?
   eligibilityReviewedAt   DateTime?
   createdAt               DateTime                @default(now())
-  whitePairings           Pairing[]               @relation("WhiteFirst")
-  blackPairings           Pairing[]               @relation("BlackFirst")
+  whiteGames              Game[]                  @relation("WhiteGames")
+  blackGames              Game[]                  @relation("BlackGames")
   byePairings             Pairing[]               @relation("ByePlayer")
   byeRequests             ByeRequest[]
 }
@@ -156,22 +162,34 @@ model Round {
   @@unique([sectionId, number])
 }
 
+// A GAME pairing owns two Game rows (the two games of the double round); colors and
+// per-game results live on Game. A BYE pairing has no games and uses the bye fields.
 model Pairing {
-  id                       String        @id @default(cuid())
-  roundId                  String
-  round                    Round         @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  boardNumber              Int
-  pairingType              PairingType   @default(GAME)
-  status                   PairingStatus @default(PENDING)
-  whiteFirstRegistrationId String?
-  whiteFirstRegistration   Registration? @relation("WhiteFirst", fields: [whiteFirstRegistrationId], references: [id])
-  blackFirstRegistrationId String?
-  blackFirstRegistration   Registration? @relation("BlackFirst", fields: [blackFirstRegistrationId], references: [id])
-  whiteFirstScoreUnits     Int?
-  blackFirstScoreUnits     Int?
-  byeRegistrationId        String?
-  byeRegistration          Registration? @relation("ByePlayer", fields: [byeRegistrationId], references: [id])
-  byeType                  ByeType?
-  byeScoreUnits            Int?
-  createdAt                DateTime      @default(now())
+  id                String        @id @default(cuid())
+  roundId           String
+  round             Round         @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  boardNumber       Int
+  pairingType       PairingType   @default(GAME)
+  status            PairingStatus @default(PENDING)
+  games             Game[]
+  byeRegistrationId String?
+  byeRegistration   Registration? @relation("ByePlayer", fields: [byeRegistrationId], references: [id])
+  byeType           ByeType?
+  byeScoreUnits     Int?
+  createdAt         DateTime      @default(now())
+}
+
+model Game {
+  id                  String       @id @default(cuid())
+  pairingId           String
+  pairing             Pairing      @relation(fields: [pairingId], references: [id], onDelete: Cascade)
+  gameNumber          Int
+  whiteRegistrationId String
+  whiteRegistration   Registration @relation("WhiteGames", fields: [whiteRegistrationId], references: [id])
+  blackRegistrationId String
+  blackRegistration   Registration @relation("BlackGames", fields: [blackRegistrationId], references: [id])
+  result              GameResult?
+  createdAt           DateTime     @default(now())
+
+  @@unique([pairingId, gameNumber])
 }

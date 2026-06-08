@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Prisma } from '@prisma/client';
-import { PairingStatus, PairingType, TournamentStatus } from '@prisma/client';
-import { isBlankScorePair, isCompleteDoubleRoundScore, parseScoreUnits } from '$lib/domain/scoring';
+import { GameResult, PairingStatus, PairingType, TournamentStatus } from '@prisma/client';
+import { parseGameResult, parseScoreUnits } from '$lib/domain/scoring';
 import { planDoubleRoundSwissPairings } from '$lib/domain/pairings';
 import { standingsFor } from './tournaments';
 import { registrationIsPairingReady } from './registrations';
@@ -40,7 +40,7 @@ export async function generateNextRound(slug: string) {
 				include: { player: true, section: true }
 			},
 			rounds: {
-				include: { pairings: true },
+				include: { pairings: { include: { games: true } } },
 				orderBy: { number: 'asc' }
 			}
 		}
@@ -84,9 +84,20 @@ export async function generateNextRound(slug: string) {
 
 		const plannedPairings = planDoubleRoundSwissPairings({
 			registrations: active,
+			// The pairing planner reasons about game-1 colors. Project each existing
+			// pairing's first game onto its white-first/black-first shape.
 			previousPairings: tournament.rounds
 				.filter((r) => r.sectionId === section.id)
-				.flatMap((r) => r.pairings),
+				.flatMap((r) => r.pairings)
+				.map((pairing) => {
+					const firstGame = pairing.games.find((g) => g.gameNumber === 1);
+					return {
+						whiteFirstRegistrationId: firstGame?.whiteRegistrationId ?? null,
+						blackFirstRegistrationId: firstGame?.blackRegistrationId ?? null,
+						byeRegistrationId: pairing.byeRegistrationId,
+						byeType: pairing.byeType
+					};
+				}),
 			requestedByes: byeRequests.map((bye) => ({
 				registrationId: bye.registrationId,
 				scoreUnits: bye.scoreUnits
@@ -106,11 +117,25 @@ export async function generateNextRound(slug: string) {
 				};
 			}
 
+			// Double round: game 1 uses the planned colors, game 2 swaps them so each
+			// player gets one White and one Black.
 			return {
 				boardNumber: pairing.boardNumber,
 				pairingType: PairingType.GAME,
-				whiteFirstRegistration: { connect: { id: pairing.whiteFirstRegistrationId } },
-				blackFirstRegistration: { connect: { id: pairing.blackFirstRegistrationId } }
+				games: {
+					create: [
+						{
+							gameNumber: 1,
+							whiteRegistration: { connect: { id: pairing.whiteFirstRegistrationId } },
+							blackRegistration: { connect: { id: pairing.blackFirstRegistrationId } }
+						},
+						{
+							gameNumber: 2,
+							whiteRegistration: { connect: { id: pairing.blackFirstRegistrationId } },
+							blackRegistration: { connect: { id: pairing.whiteFirstRegistrationId } }
+						}
+					]
+				}
 			};
 		});
 
@@ -143,34 +168,38 @@ export async function saveResults(form: FormData) {
 
 	if (!roundId) return fail(400, { message: 'Round is required.' });
 
-	const scores = new Map(
+	const results = new Map(
 		pairingIds.map((id) => [
 			id,
 			{
-				white: parseScoreUnits(form.get(`whiteScore-${id}`)),
-				black: parseScoreUnits(form.get(`blackScore-${id}`))
+				game1: parseGameResult(form.get(`game1-${id}`)),
+				game2: parseGameResult(form.get(`game2-${id}`))
 			}
 		])
 	);
 
-	for (const { white, black } of scores.values()) {
-		if (isBlankScorePair(white, black)) continue;
-		if (!isCompleteDoubleRoundScore(white, black)) {
-			return fail(400, { message: 'Each completed pairing score must total 2 points.' });
+	for (const { game1, game2 } of results.values()) {
+		if (game1 == null && game2 == null) continue;
+		if (game1 == null || game2 == null) {
+			return fail(400, { message: 'Enter a result for both games of a pairing, or leave both blank.' });
 		}
 	}
 
 	await prisma.$transaction(async (tx) => {
-		for (const [pairingId, { white, black }] of scores) {
-			if (!isCompleteDoubleRoundScore(white, black)) continue;
+		for (const [pairingId, { game1, game2 }] of results) {
+			if (game1 == null || game2 == null) continue;
 
+			await tx.game.updateMany({
+				where: { pairingId, gameNumber: 1 },
+				data: { result: game1 as GameResult }
+			});
+			await tx.game.updateMany({
+				where: { pairingId, gameNumber: 2 },
+				data: { result: game2 as GameResult }
+			});
 			await tx.pairing.update({
 				where: { id: pairingId },
-				data: {
-					whiteFirstScoreUnits: white,
-					blackFirstScoreUnits: black,
-					status: PairingStatus.COMPLETE
-				}
+				data: { status: PairingStatus.COMPLETE }
 			});
 		}
 

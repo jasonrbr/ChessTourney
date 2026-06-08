@@ -1,4 +1,6 @@
-export const doubleRoundScoreTotalUnits = 4;
+// Score units are half-points: 1 unit = 0.5 points. A single game is worth up to
+// 2 units (a win), so a swept two-game double-round pairing totals 4 units = 2 points.
+export const gameWinUnits = 2;
 
 const scoreLabels = new Map([
 	[0, '0'],
@@ -32,17 +34,20 @@ export function parseScoreUnits(value: unknown) {
 	return scoreInputs.get(text) ?? null;
 }
 
-export function isCompleteDoubleRoundScore(
-	whiteScoreUnits: number | null,
-	blackScoreUnits: number | null
-) {
-	return (
-		whiteScoreUnits != null &&
-		blackScoreUnits != null &&
-		whiteScoreUnits + blackScoreUnits === doubleRoundScoreTotalUnits
-	);
+// --- Per-game results ---
+
+export type GameResultCode = 'WHITE_WIN' | 'DRAW' | 'BLACK_WIN';
+
+const gameResultCodes = new Set<GameResultCode>(['WHITE_WIN', 'DRAW', 'BLACK_WIN']);
+
+export function parseGameResult(value: unknown): GameResultCode | null {
+	const text = String(value ?? '').trim();
+	return gameResultCodes.has(text as GameResultCode) ? (text as GameResultCode) : null;
 }
 
-export function isBlankScorePair(whiteScoreUnits: number | null, blackScoreUnits: number | null) {
-	return whiteScoreUnits == null && blackScoreUnits == null;
+// Units one side scores in a single game: win = 2 (1 point), draw = 1 (0.5), loss = 0.
+export function gameUnitsFor(result: GameResultCode, side: 'white' | 'black'): number {
+	if (result === 'DRAW') return 1;
+	const winningSide = result === 'WHITE_WIN' ? 'white' : 'black';
+	return side === winningSide ? gameWinUnits : 0;
 }
